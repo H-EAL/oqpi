@@ -7,7 +7,7 @@ namespace oqpi {
 	struct is_same_template
 		: public std::false_type
 	{};
-
+	// Same!
 	template<template<typename> typename T>
 	struct is_same_template<T, T>
 		: public std::true_type
@@ -26,6 +26,6 @@ namespace oqpi {
 
 	// Shortcut removing the necessity to call ::value from is_empty_layer
 	template<typename _Layer>
-	constexpr auto is_empty_layer_v = is_empty_layer<_Layer>::value;
+	static constexpr auto is_empty_layer_v = is_empty_layer<_Layer>::value;
 
 } /*oqpi*/

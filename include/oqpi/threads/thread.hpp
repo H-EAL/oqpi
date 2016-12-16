@@ -13,6 +13,6 @@
 
 namespace oqpi {
 
-	using thread_interface = interface::thread<thread_impl, empty_layer>
+	using thread_interface = interface::thread<thread_impl, empty_layer>;
 
 }

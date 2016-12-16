@@ -2,9 +2,16 @@
 
 #include "oqpi.hpp"
 
+using thread = oqpi::thread_interface;
+
 int main()
 {
-	oqpi::thread th;
+    thread th{ "MyThread", []()
+    {
+        return;
+    } };
+
+    //std::thread t;
 
 	return EXIT_SUCCESS;
 }

@@ -57,5 +57,8 @@
     <ClInclude Include="..\..\include\oqpi\threads\win_thread.hpp">
       <Filter>include\threads\_impl</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\empty_layer.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

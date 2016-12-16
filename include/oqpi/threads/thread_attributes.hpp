@@ -17,7 +17,7 @@ namespace oqpi {
 		core6 = core5 << 1,
 		core7 = core6 << 1,
 
-		all_cores = std::numeric_limits<uint32_t>::max()
+		all_cores = (std::numeric_limits<uint32_t>::max)()
 	};
 	//----------------------------------------------------------------------------------------------
 

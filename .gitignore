@@ -2,3 +2,4 @@
 *.opendb
 *.TMP
 tmp/
+*.sdf

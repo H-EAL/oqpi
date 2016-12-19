@@ -1,5 +1,6 @@
 #pragma once
 
+#include <tuple>
 #include <memory>
 #include <type_traits>
 #include "oqpi/empty_layer.hpp"
@@ -26,17 +27,20 @@ namespace oqpi { namespace interface {
         template<typename _Func, typename... _Args>
         explicit thread(const thread_attributes &attributes, _Func &&func, _Args &&...args)
         {
-            launch(attributes, std::bind(std::forward<_Func>(func), std::forward<_Args>(args)...));
+            launch
+            (
+                attributes, 
+                std::make_unique<std::tuple<std::decay_t<_Func>, std::decay_t<_Args>...>>
+                (
+                    std::forward<_Func>(func),
+                    std::forward<_Args>(args)...
+                )
+            );
         }
 
         template<typename _Func, typename... _Args>
         explicit thread(const char *pName, _Func &&func, _Args &&...args)
             : thread(thread_attributes{pName}, std::forward<_Func>(func), std::forward<_Args>(args)...)
-        {}
-
-        template<typename _Func, typename... _Args>
-        explicit thread(_Func &&func, _Args &&...args)
-            : thread("<unnamed thread>", std::forward<_Func>(func), std::forward<_Args>(args)...)
         {}
 
     public:
@@ -56,15 +60,25 @@ namespace oqpi { namespace interface {
         uint32_t        getStackSize()      const { return ThreadImpl::getStackSize();    }
 
     private:
-        template<typename _Target>
-        void launch(const thread_attributes &attributes, _Target &&target)
+        static DWORD tp(LPVOID)
         {
-            auto upTarget = std::make_unique<_Target>(std::forward<_Target>(target));
-
-            if (ThreadImpl::create(attributes, nullptr))
+            this_thread::sleep_for(std::chrono::seconds(1));
+            return 0;
+        }
+        template<typename _Target>
+        void launch(const thread_attributes &attributes, _Target &&upTarget)
+        {
+            auto pTarget = upTarget.get();
+            if (!ThreadImpl::create(attributes, tp))
             {
                 upTarget.release();
             }
+        }
+
+        template<typename _Target, size_t... _Indices>
+        static void run(_Target &&upTarget, std::integer_sequence<size_t, _Indices...>)
+        {
+            std::invoke(std::move(std::get<_Indices>(*upTarget))...);
         }
     };
 

@@ -24,8 +24,4 @@ namespace oqpi {
 		: public is_same_template<_Layer, empty_layer>
 	{};
 
-	// Shortcut removing the necessity to call ::value from is_empty_layer
-	template<typename _Layer>
-	static constexpr auto is_empty_layer_v = is_empty_layer<_Layer>::value;
-
 } /*oqpi*/

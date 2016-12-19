@@ -27,13 +27,21 @@ namespace oqpi {
         native_handle   getNativeHandle()   const { return handle_; }
         id              getId()             const { return id_;     }
 
+        void join()
+        {
+            if (handle_)
+            {
+                WaitForSingleObject(handle_, INFINITE);
+            }
+        }
+
         using thread_proc = DWORD(LPVOID);
 
         bool create(const thread_attributes &attributes, thread_proc &&threadProc)
         {
             const auto lpThreadAttributes   = nullptr;
             const auto dwStackSize          = DWORD{ attributes.stackSize };
-            const auto lpStartAddress       = [](LPVOID lpParam) -> DWORD { return 0; };
+            const auto lpStartAddress       = LPTHREAD_START_ROUTINE{ &threadProc };
             const auto lpParameter          = nullptr;
             const auto dwCreationFlags      = DWORD{ 0 }; // default creation flags
             const auto lpThreadId           = &id_;

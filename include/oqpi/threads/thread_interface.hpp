@@ -27,15 +27,7 @@ namespace oqpi { namespace interface {
         template<typename _Func, typename... _Args>
         explicit thread(const thread_attributes &attributes, _Func &&func, _Args &&...args)
         {
-            launch
-            (
-                attributes, 
-                std::make_unique<std::tuple<std::decay_t<_Func>, std::decay_t<_Args>...>>
-                (
-                    std::forward<_Func>(func),
-                    std::forward<_Args>(args)...
-                )
-            );
+            launch(attributes, std::tuple<std::decay_t<_Func>, std::decay_t<_Args>...>(std::forward<_Func>(func), std::forward<_Args>(args)...));
         }
 
         template<typename _Func, typename... _Args>
@@ -60,25 +52,40 @@ namespace oqpi { namespace interface {
         uint32_t        getStackSize()      const { return ThreadImpl::getStackSize();    }
 
     private:
-        static DWORD tp(LPVOID)
-        {
-            this_thread::sleep_for(std::chrono::seconds(1));
-            return 0;
-        }
         template<typename _Target>
-        void launch(const thread_attributes &attributes, _Target &&upTarget)
+        struct launcher
         {
-            auto pTarget = upTarget.get();
-            if (!ThreadImpl::create(attributes, tp))
+            launcher(_Target &&target, const thread_attributes &attributes)
+                : target_(std::move(target))
+                , attributes_(attributes)
+            {}
+
+            inline void operator()()
+            {
+                this_thread::set_name(attributes_.name);
+                run(std::make_integer_sequence<size_t, std::tuple_size<typename _Target>::value>());
+            }
+
+            template<size_t... _Indices>
+            void run(std::integer_sequence<size_t, _Indices...>)
+            {
+                std::invoke(std::move(std::get<_Indices>(target_))...);
+            }
+
+            _Target target_;
+            const thread_attributes attributes_;
+        };
+
+        template<typename _Target>
+        void launch(const thread_attributes &attributes, _Target &&target)
+        {
+            using Launcher = launcher<_Target>;
+            auto upTarget = std::make_unique<Launcher>(std::forward<_Target>(target), attributes);
+
+            if (ThreadImpl::create(attributes, ThreadImpl::template getThreadProc<Launcher>(), upTarget.get()))
             {
                 upTarget.release();
             }
-        }
-
-        template<typename _Target, size_t... _Indices>
-        static void run(_Target &&upTarget, std::integer_sequence<size_t, _Indices...>)
-        {
-            std::invoke(std::move(std::get<_Indices>(*upTarget))...);
         }
     };
 

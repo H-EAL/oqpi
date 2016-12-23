@@ -21,6 +21,9 @@
   <ItemGroup>
     <ClCompile Include="..\..\test\oqpi_tests.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="oqpi.natvis" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A9C9C6AB-AEF1-49A3-95DA-53338680D7A7}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

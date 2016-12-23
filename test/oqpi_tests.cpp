@@ -1,43 +1,13 @@
-#include <iostream>
-
-#include "oqpi.hpp"
-
+ #include <iostream>
+ 
+ #include "oqpi.hpp"
+ 
 using thread = oqpi::thread_interface;
-
-template<typename... _Types>
-struct type_list {};
-
-using my_tl = type_list<double, int, char, float>;
-
-template<typename _Type>
-struct holder
-{
-    int id = 0;
-};
-
-template<typename _TL>
-struct entity;
-
-template<typename... _Types>
-struct entity<type_list<_Types...>>
-    : public holder<_Types>...
-{
-    template<typename _Type>
-    int getId()
-    {
-        return holder<_Type>::id;
-    }
-
-    template<typename _Type>
-    void use()
-    {
-        holder<_Type>::id++;
-    }
-};
 
 int main()
 {
-    thread th{ "MyThread", [](const char *c, int i, float f)
+    const auto attr = oqpi::thread_attributes{ "MyThread", (std::numeric_limits<uint32_t>::min)(), oqpi::core_affinity::all_cores, oqpi::thread_priority::highest };
+    thread th{ attr, [](const char *c, int i, float f)
     {
         std::cout << c << std::endl;
         std::cout << i << std::endl;
@@ -50,15 +20,14 @@ int main()
             b++;
         }
 
-    }, "haha", 43, 8.f };
-
-    entity<my_tl> t;
-    t.use<int>();
-    std::cout << t.getId<int>() << std::endl;
+    }, "haha", 43, 8.f };    
+    
+    const auto t = thread::hardware_concurrency();
+    th.setCoreAffinity(3);
+    const auto a = th.getCoreAffinityMask();
+    oqpi_checkf(a == oqpi::core3, "Core Affinity = 0x%x, expected 0x%x", int(a), int(oqpi::core3));
 
     th.join();
 
-    //std::thread t;
-
-	return EXIT_SUCCESS;
+    return 0;
 }

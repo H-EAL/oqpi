@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\include\oqpi.hpp" />
     <ClInclude Include="..\..\include\oqpi\empty_layer.hpp" />
+    <ClInclude Include="..\..\include\oqpi\error_handling.hpp" />
     <ClInclude Include="..\..\include\oqpi\parallel_algorithms.hpp" />
     <ClInclude Include="..\..\include\oqpi\platform.hpp" />
     <ClInclude Include="..\..\include\oqpi\scheduling.hpp" />

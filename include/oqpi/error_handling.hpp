@@ -43,6 +43,10 @@
     }
 
 //----------------------------------------------------------------------------------------------
+// Always evaluate the condition
+#define oqpi_verify(COND)               OQPI_ASSERT_DO_NOT_USE((COND), __FILE__, __LINE__)
+#define oqpi_verifyf(COND, MSG, ...)    OQPI_ASSERTF_DO_NOT_USE((COND), (MSG), __FILE__, __LINE__, ##__VA_ARGS__)
+//----------------------------------------------------------------------------------------------
 // Assertion that will cause the program to crash (can be skipped)
 #define oqpi_check(COND)                OQPI_ASSERT_DO_NOT_USE((COND), __FILE__, __LINE__)
 #define oqpi_checkf(COND, MSG, ...)     OQPI_ASSERTF_DO_NOT_USE((COND), (MSG), __FILE__, __LINE__, ##__VA_ARGS__)

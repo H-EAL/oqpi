@@ -14,10 +14,10 @@ namespace oqpi { namespace interface {
     // Thread interface, all thread implementation need to comply to this interface
     template
     <
-          typename _Impl
         // Platform specific implementation for a thread
-        , template<typename> typename _Layer = empty_layer
+          typename _Impl
         // Augmentation layer, needs to be templated and inherit from the implementation
+        , template<typename> typename _Layer = empty_layer
     >
     class thread
         : public std::conditional<is_empty_layer<_Layer>::value, _Impl, _Layer<_Impl>>::type
@@ -25,16 +25,18 @@ namespace oqpi { namespace interface {
     public:
         //------------------------------------------------------------------------------------------
         // Whether the thread has augmented layer(s) or not
-        static constexpr auto IsLean	= is_empty_layer<_Layer>::value;
+        static constexpr auto is_lean	= is_empty_layer<_Layer>::value;
         // The platform specific implementation
-        using ThreadImpl				= _Impl;
-        // The actual type taking into account the presence or absence of augmentation layer(s)
-        using SelfType					= typename std::conditional<IsLean, _Impl, _Layer<_Impl>>::type;
+        using thread_impl				= _Impl;
+        // The actual base type taking into account the presence or absence of augmentation layer(s)
+        using base_type					= typename std::conditional<is_lean, thread_impl, _Layer<thread_impl>>::type;
+        // The actual type
+        using self_type                 = thread<thread_impl, _Layer>;
         
     public:
         //------------------------------------------------------------------------------------------
         // Returns the number of hardware threads (logical cores)
-        static unsigned int hardware_concurrency() { return ThreadImpl::hardware_concurrency(); }
+        static unsigned int hardware_concurrency() { return thread_impl::hardware_concurrency(); }
 
     public:
         //------------------------------------------------------------------------------------------
@@ -71,11 +73,11 @@ namespace oqpi { namespace interface {
     public:
         //------------------------------------------------------------------------------------------
         // Movable
-        thread(SelfType &&other)
-            : ThreadImpl(std::move(other))
+        thread(self_type &&other)
+            : base_type(std::move(other))
         {}
         //------------------------------------------------------------------------------------------
-        SelfType& operator =(SelfType &&rhs)
+        self_type& operator =(self_type &&rhs)
         {
             if (this != &rhs)
             {
@@ -83,7 +85,7 @@ namespace oqpi { namespace interface {
                 {
                     std::terminate();
                 }
-                ThreadImpl::operator =(std::move(rhs));
+                thread_impl::operator =(std::move(rhs));
             }
             return (*this);
         }
@@ -91,31 +93,31 @@ namespace oqpi { namespace interface {
     private:
         //------------------------------------------------------------------------------------------
         // Not copyable
-        thread(const SelfType &)                = delete;
-        SelfType& operator =(const SelfType &)  = delete;
+        thread(const self_type &)                   = delete;
+        self_type& operator =(const self_type &)    = delete;
 
 
     public:
         //------------------------------------------------------------------------------------------
         // Forward native type  definitions
-        using id                 = typename ThreadImpl::id;
-        using native_handle_type = typename ThreadImpl::native_handle_type;
+        using id                 = typename thread_impl::id;
+        using native_handle_type = typename thread_impl::native_handle_type;
 
     public:
         //------------------------------------------------------------------------------------------
         // Public interface that needs to be implemented by the thread implementation
-        id                  getId()                                     const   { return ThreadImpl::getId();                       }
-        native_handle_type  getNativeHandle()                           const   { return ThreadImpl::getNativeHandle();             }
+        id                  getId()                                     const   { return thread_impl::getId();                       }
+        native_handle_type  getNativeHandle()                           const   { return thread_impl::getNativeHandle();             }
 
-        bool                joinable()                                  const   { return ThreadImpl::joinable();                    }
-        void                join()                                              { return ThreadImpl::join();                        }
-        void                detach()                                            { return ThreadImpl::detach();                      }
+        bool                joinable()                                  const   { return thread_impl::joinable();                    }
+        void                join()                                              { return thread_impl::join();                        }
+        void                detach()                                            { return thread_impl::detach();                      }
                                         
-        void                setCoreAffinityMask(core_affinity affinity)         { return ThreadImpl::setCoreAffinityMask(affinity); }
-        core_affinity       getCoreAffinityMask()                       const   { return ThreadImpl::getCoreAffinityMask();         }
+        void                setCoreAffinityMask(core_affinity affinity)         { return thread_impl::setCoreAffinityMask(affinity); }
+        core_affinity       getCoreAffinityMask()                       const   { return thread_impl::getCoreAffinityMask();         }
 
-        void                setPriority(thread_priority priority)               { return ThreadImpl::setPriority(priority);         }
-        thread_priority     getPriority()                               const   { return ThreadImpl::getPriority();                 }
+        void                setPriority(thread_priority priority)               { return thread_impl::setPriority(priority);         }
+        thread_priority     getPriority()                               const   { return thread_impl::getPriority();                 }
 
     public:
         //------------------------------------------------------------------------------------------
@@ -167,7 +169,7 @@ namespace oqpi { namespace interface {
 
             // Actually creates the thread. Passed a pointer to the launcher as user data.
             // The implementation should take the ownership of the launcher if the thread creation succeeds.
-            if (ThreadImpl::template create<launcher_t>(attributes, upLauncher.get()))
+            if (thread_impl::template create<launcher_t>(attributes, upLauncher.get()))
             {
                 // If the thread creation succeeded, we transfer the ownership of the launcher to it.
                 upLauncher.release();

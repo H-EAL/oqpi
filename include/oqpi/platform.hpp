@@ -6,7 +6,7 @@
 #define OQPI_PLATFORM_POSIX	(0)
 
 // Define only the current platform to 1
-#if defined(PLATFORM_WIN)
+#if defined(_WIN32)
 #	undef  OQPI_PLATFORM_WIN
 #	define OQPI_PLATFORM_WIN	(1)
 #   define WIN32_LEAN_AND_MEAN

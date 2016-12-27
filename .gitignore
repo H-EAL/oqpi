@@ -3,3 +3,4 @@
 *.TMP
 tmp/
 *.sdf
+bin/

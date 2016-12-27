@@ -3,7 +3,7 @@
 #include "oqpi/platform.hpp"
 
 // Thread interface
-#include "oqpi/threads/thread_interface.hpp"
+#include "oqpi/threads/interface_thread.hpp"
 // Platform specific implementations
 #if OQPI_PLATFORM_WIN
 #	include "oqpi/threads/win_thread.hpp"

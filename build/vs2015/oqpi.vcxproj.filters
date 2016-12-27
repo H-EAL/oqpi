@@ -24,12 +24,18 @@
     <Filter Include="include\threads\_impl">
       <UniqueIdentifier>{b80e97f0-058b-45b4-9448-79c2ae895ed1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\scheduling\_tasks">
+      <UniqueIdentifier>{f9c935e2-64e1-4b65-a016-83d3db886fd7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\synchronization\interface">
+      <UniqueIdentifier>{d8949f15-c2a9-4c7a-85c7-6285f604207a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\synchronization\win">
+      <UniqueIdentifier>{b0b5fc0a-11ff-414d-896c-1b4628b77866}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\oqpi.hpp" />
-    <ClInclude Include="..\..\include\oqpi\threads\thread_interface.hpp">
-      <Filter>include\threads</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\oqpi\threads\thread_attributes.hpp">
       <Filter>include\threads</Filter>
     </ClInclude>
@@ -63,5 +69,41 @@
     <ClInclude Include="..\..\include\oqpi\error_handling.hpp">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\scheduling\task_base.hpp">
+      <Filter>include\scheduling\_tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\scheduling\task_type.hpp">
+      <Filter>include\scheduling\_tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\scheduling\task_notifier.hpp">
+      <Filter>include\scheduling\_tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\scheduling\task.hpp">
+      <Filter>include\scheduling\_tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\scheduling\task_context.hpp">
+      <Filter>include\scheduling\_tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\scheduling\context_container.hpp">
+      <Filter>include\scheduling</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\synchronization\interface\interface_event.hpp">
+      <Filter>include\synchronization\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\synchronization\win\win_event.hpp">
+      <Filter>include\synchronization\win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\synchronization\event.hpp">
+      <Filter>include\synchronization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\threads\interface_thread.hpp">
+      <Filter>include\threads</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\scheduling\default_contexts.hpp">
+      <Filter>include\scheduling</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="oqpi.natvis" />
   </ItemGroup>
 </Project>

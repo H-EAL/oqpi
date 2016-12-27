@@ -8,7 +8,8 @@
 namespace oqpi {
 
     //----------------------------------------------------------------------------------------------
-    // Forward declaration of this platform thread implementation
+    // Type definition of this platform thread implementation, this is needed by interface::thread
+    // to be able to select the right implementation.
     using thread_impl = class win_thread;
     //----------------------------------------------------------------------------------------------
 	class win_thread
@@ -17,7 +18,7 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         static uint32_t hardware_concurrency()
         {
-            static const auto logicalProcessorCount = static_cast<uint32_t>(GetActiveProcessorCount(ALL_PROCESSOR_GROUPS));
+            static const auto logicalProcessorCount = uint32_t(GetActiveProcessorCount(ALL_PROCESSOR_GROUPS));
             return logicalProcessorCount;
         }
 
@@ -29,11 +30,14 @@ namespace oqpi {
             , id_(0)
         {}
         //------------------------------------------------------------------------------------------
-        // The interface will take care of validation
         ~win_thread()
         {
-            handle_ = nullptr;
-            id_     = 0;
+            // The interface should have taken care of either joining or terminating the thread
+            if (oqpi_failed(handle_ == nullptr && id_ == 0))
+            {
+                handle_ = nullptr;
+                id_     = 0;
+            }
         }
         //------------------------------------------------------------------------------------------
 
@@ -48,10 +52,9 @@ namespace oqpi {
             other.id_       = 0;
         }
         //------------------------------------------------------------------------------------------
-        // The interface will take care of validation
         win_thread& operator =(win_thread &&rhs)
         {
-            if (this != &rhs)
+            if (this != &rhs && oqpi_ensure(handle_ == nullptr && id_ == 0))
             {
                 handle_     = rhs.handle_;
                 id_         = rhs.id_;
@@ -91,10 +94,9 @@ namespace oqpi {
 
             // This will receive the thread identifier
             const auto lpThreadId           = LPDWORD{ &id_ };
-
-
+            
             handle_ = CreateThread(lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, lpThreadId);
-            if (oqpi_failed(handle_ != nullptr))
+            if (handle_ == nullptr)
             {
                 oqpi_error("CreateThread failed with error code: %d", GetLastError());
                 return false;
@@ -118,7 +120,7 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         id                  getId()             const { return id_;                 }
         native_handle_type  getNativeHandle()   const { return handle_;             }
-        bool                joinable()          const { return handle_ != nullptr; }
+        bool                joinable()          const { return handle_ != nullptr;  }
         //------------------------------------------------------------------------------------------
 
 
@@ -174,61 +176,23 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         core_affinity getCoreAffinityMask() const
         {
-            // Nasty work-around as Win32 doesn't provide a GetThreadAffinityMask()
-            auto testMask = DWORD_PTR{ 1 };
-            auto dwPreviousAffinityMask = DWORD_PTR{ 0 };
-
-            // Try every core one by one until one works or none are left
-            // (usually the first one will work right away)
-            while (testMask)
-            {
-                dwPreviousAffinityMask = SetThreadAffinityMask(handle_, testMask);
-                if (dwPreviousAffinityMask != 0)
-                {
-                    // Reset the previous value as if nothing happened
-                    SetThreadAffinityMask(handle_, dwPreviousAffinityMask);
-                    break;
-                }
-
-                if (oqpi_failed(GetLastError() != ERROR_INVALID_PARAMETER))
-                {
-                    break;
-                }
-                testMask <<= 1;
-            }
-
-            return static_cast<core_affinity>(dwPreviousAffinityMask);
+            return get_core_affinity_mask(handle_);
         }
         //------------------------------------------------------------------------------------------
         void setCoreAffinityMask(core_affinity affinityMask)
         {
-            set_affinity_mask(handle_, affinityMask);
+            set_core_affinity_mask(handle_, affinityMask);
         }
         //------------------------------------------------------------------------------------------
 
 
         //------------------------------------------------------------------------------------------
-        thread_priority win_thread::getPriority() const
+        thread_priority getPriority() const
         {
-            auto threadPriority = thread_priority::normal;
-
-            const auto priority = GetThreadPriority(handle_);
-            if (oqpi_ensure(priority != THREAD_PRIORITY_ERROR_RETURN))
-            {
-                for (int i = 0; i < int32_t(thread_priority::count); ++i)
-                {
-                    const auto p = static_cast<thread_priority>(i);
-                    if (priority == win_thread_priority(p))
-                    {
-                        threadPriority = p;
-                        break;
-                    }
-                }
-            }
-            return threadPriority;
+            return get_priority(handle_);
         }
         //------------------------------------------------------------------------------------------
-        void win_thread::setPriority(thread_priority priority)
+        void setPriority(thread_priority priority)
         {
             set_priority(handle_, priority);
         }
@@ -244,14 +208,41 @@ namespace oqpi {
 
 
     public:
-        //----------------------------------------------------------------------------------------------
-        static void set_affinity_mask(native_handle_type handle, core_affinity affinityMask)
+        //------------------------------------------------------------------------------------------
+        static void set_core_affinity_mask(native_handle_type handle, core_affinity affinityMask)
         {
             // Make sure the selected mask is valid
             oqpi_check(static_cast<uint64_t>(affinityMask) < (1ull << hardware_concurrency()) || affinityMask == core_affinity::all_cores);
+            oqpi_verify(SetThreadAffinityMask(handle, static_cast<DWORD_PTR>(affinityMask)) != 0);
+        }
+        //------------------------------------------------------------------------------------------
+        static core_affinity get_core_affinity_mask(native_handle_type handle)
+        {
+            // Nasty work-around as Win32 doesn't provide a GetThreadAffinityMask()
+            auto testMask = DWORD_PTR{ 1 };
+            auto dwPreviousAffinityMask = DWORD_PTR{ 0 };
 
-            const auto dwPreviousAffinityMask = SetThreadAffinityMask(handle, static_cast<DWORD_PTR>(affinityMask));
-            oqpi_check(dwPreviousAffinityMask != 0);
+            // Try every core one by one until one works or none are left
+            // (usually the first one will work right away)
+            while (testMask)
+            {
+                dwPreviousAffinityMask = SetThreadAffinityMask(handle, testMask);
+                if (dwPreviousAffinityMask != 0)
+                {
+                    // Reset the previous value as if nothing happened
+                    SetThreadAffinityMask(handle, dwPreviousAffinityMask);
+                    break;
+                }
+
+                if (GetLastError() != ERROR_INVALID_PARAMETER)
+                {
+                    oqpi_warning("Unable to retrieve core affinity mask for thread %d", GetCurrentThreadId());
+                    break;
+                }
+                testMask <<= 1;
+            }
+
+            return static_cast<core_affinity>(dwPreviousAffinityMask);
         }
         //------------------------------------------------------------------------------------------
         static void set_priority(native_handle_type handle, thread_priority priority)
@@ -259,23 +250,48 @@ namespace oqpi {
             SetThreadPriority(handle, win_thread_priority(priority));
         }
         //------------------------------------------------------------------------------------------
-        static void set_name(win_thread::id threadId, const char *name)
+        static thread_priority get_priority(native_handle_type handle)
+        {
+            auto threadPriority = thread_priority::normal;
+
+            const auto priority = GetThreadPriority(handle);
+            if (priority != THREAD_PRIORITY_ERROR_RETURN)
+            {
+                for (int i = 0; i < int32_t(thread_priority::count); ++i)
+                {
+                    const auto p = static_cast<thread_priority>(i);
+                    if (priority == win_thread_priority(p))
+                    {
+                        threadPriority = p;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                oqpi_warning("Unable to retrieve thread priority for thread %d", GetCurrentThreadId());
+            }
+
+            return threadPriority;
+        }
+        //------------------------------------------------------------------------------------------
+        static void set_name(id threadId, const char *name)
         {
             #pragma pack(push,8)
             struct THREADNAME_INFO
             {
-                DWORD dwType;       // Must be 0x1000.
-                LPCSTR szName;      // Pointer to name (in user addr space).
-                DWORD dwThreadID;   // Thread ID (-1=caller thread).
-                DWORD dwFlags;      // Reserved for future use, must be zero.
+                DWORD  dwType;       // Must be 0x1000.
+                LPCSTR szName;       // Pointer to name (in user addr space).
+                DWORD  dwThreadID;   // Thread ID (-1=caller thread).
+                DWORD  dwFlags;      // Reserved for future use, must be zero.
             };
             #pragma pack(pop)
 
             THREADNAME_INFO info;
-            info.dwType = 0x1000;
-            info.szName = name;
+            info.dwType     = 0x1000;
+            info.szName     = name;
             info.dwThreadID = threadId;
-            info.dwFlags = 0;
+            info.dwFlags    = 0;
 
             __try
             {
@@ -338,7 +354,7 @@ namespace oqpi {
             SleepEx(dwMilliseconds, TRUE);
         }
         //------------------------------------------------------------------------------------------
-        inline unsigned int get_current_core()
+        inline uint32_t get_current_core()
         {
             // Retrieves the number of the processor the current thread was running on during
             // the call to this function.
@@ -357,9 +373,9 @@ namespace oqpi {
             win_thread::set_priority(GetCurrentThread(), threadPriority);
         }
         //------------------------------------------------------------------------------------------
-        inline void set_affinity_mask(core_affinity coreAffinity)
+        inline void set_affinity_mask(core_affinity coreAffinityMask)
         {
-            win_thread::set_affinity_mask(GetCurrentThread(), coreAffinity);
+            win_thread::set_core_affinity_mask(GetCurrentThread(), coreAffinityMask);
         }
         //------------------------------------------------------------------------------------------
 

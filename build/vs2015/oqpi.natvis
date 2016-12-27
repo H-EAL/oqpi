@@ -1,4 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?> 
+<?xml version="1.0" encoding="utf-8"?>
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
-
+  <Type Name="std::shared_ptr&lt;oqpi::task&lt;*,*&gt;&gt;">
+    <DisplayString Condition="_Ptr">
+      {_Ptr->name_} [{oqpi::task_type($T1)}, priority={_Ptr->priority_}, grabbed={(bool)_Ptr->grabbed_._My_val}, done={(bool)_Ptr->done_._My_val}]
+    </DisplayString>
+    <DisplayString Condition="!_Ptr">
+      empty
+    </DisplayString>
+  </Type>
 </AutoVisualizer>

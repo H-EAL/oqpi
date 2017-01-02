@@ -121,6 +121,11 @@ namespace oqpi {
             }
         }
 
+        const std::string& getName() const
+        {
+            return name_;
+        }
+
     protected:
         //------------------------------------------------------------------------------------------
         // The name of the task used in various debug tools

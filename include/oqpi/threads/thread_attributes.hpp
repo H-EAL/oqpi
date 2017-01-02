@@ -39,27 +39,31 @@ namespace oqpi {
 	struct thread_attributes
 	{
         // Thread's name that will appear in various debug tools
-		const char		*name_;
+		std::string     name_;
         // The maximal stack size of the thread, 0 will use the system's default value
-		uint32_t		 stackSize_;
+		uint32_t		stackSize_;
         // Specifies which cores this thread is allowed to run on.
-		core_affinity	 coreAffinityMask_;
+		core_affinity   coreAffinityMask_;
         // The higher the priority the bigger the time slices this thread will be given in the 
         // underlying OS scheduler.
-		thread_priority	 priority_;
+		thread_priority priority_;
+        // Whether or not to launch the thread detached
+        bool            detached_;
 
         // Constructor with default values, the name should always be specified
         thread_attributes
         (
-            const char *name,
+            const std::string name,
             uint32_t stackSize              = 0u,
             core_affinity coreAffinityMask  = core_affinity::all_cores,
-            thread_priority priority        = thread_priority::normal
+            thread_priority priority        = thread_priority::normal,
+            bool detached                   = false
         )
             : name_             (name)
             , stackSize_        (stackSize)
             , coreAffinityMask_ (coreAffinityMask)
             , priority_         (priority)
+            , detached_         (detached)
         {}
 	};
 	//----------------------------------------------------------------------------------------------

@@ -1,29 +1,29 @@
 #pragma once
 
-#include <memory>
+#include <tuple>
 #include "oqpi/scheduling/task_base.hpp"
 #include "oqpi/scheduling/task_notifier.hpp"
 
 
 namespace oqpi {
 
-    template<task_type _TaskType, typename _TaskContext, typename _Func>
+    template<task_type _TaskType, typename _TaskContext, typename _Tuple>
     class task final
         : public task_base
         , public notifier<_TaskType>
         , public _TaskContext
     {
         //------------------------------------------------------------------------------------------
-        using self_type     = task<_TaskType, _TaskContext, _Func>;
+        using self_type     = task<_TaskType, _TaskContext, _Tuple>;
         using notifier_type = notifier<_TaskType>;
 
     public:
         //------------------------------------------------------------------------------------------
-        task(std::string name, _Func func, task_priority priority)
+        task(std::string name, task_priority priority, _Tuple tuple)
             : task_base(std::move(name), priority)
             , notifier_type(name_)
             , _TaskContext(this)
-            , func_(std::move(func))
+            , tuple_(std::move(tuple))
         {}
 
         //------------------------------------------------------------------------------------------
@@ -32,6 +32,7 @@ namespace oqpi {
             : task_base(std::move(other))
             , notifier_type(std::move(other))
             , _TaskContext(std::move(other))
+            , tuple_(std::move(other.tuple_))
         {}
 
         //------------------------------------------------------------------------------------------
@@ -42,7 +43,7 @@ namespace oqpi {
                 task_base::operator =(std::move(rhs));
                 notifier_type::operator =(std::move(rhs));
                 _TaskContext::operator =(std::move(rhs));
-                func_ = std::move(rhs.func_);
+                tuple_ = std::move(rhs.tuple_);
             }
             return (*this);
         }
@@ -57,7 +58,7 @@ namespace oqpi {
         virtual void execute() override final
         {
             _TaskContext::task_onPreExecute();
-            func_();
+            invoke();
             _TaskContext::task_onPostExecute();
 
             task_base::setDone();
@@ -70,7 +71,7 @@ namespace oqpi {
             if (task_base::tryGrab())
             {
                 _TaskContext::task_onPreExecute();
-                func_();
+                invoke();
                 _TaskContext::task_onPostExecute();
 
                 done_.store(true);
@@ -98,7 +99,20 @@ namespace oqpi {
         }
 
     private:
-        _Func func_;
+        //------------------------------------------------------------------------------------------
+        void invoke()
+        {
+            invokeTuple(std::make_integer_sequence<size_t, std::tuple_size<typename _Tuple>::value>());
+        }
+        //------------------------------------------------------------------------------------------
+        template<size_t... _Indices>
+        void invokeTuple(std::integer_sequence<size_t, _Indices...>)
+        {
+            std::invoke(std::move(std::get<_Indices>(tuple_))...);
+        }
+
+    private:
+        _Tuple tuple_;
     };
     //----------------------------------------------------------------------------------------------
 
@@ -106,10 +120,17 @@ namespace oqpi {
     //----------------------------------------------------------------------------------------------
     // Type     : user defined
     // Context  : user defined
-    template<task_type _TaskType, typename _TaskContext, typename _Func>
-    inline auto make_task(const std::string &name, _Func &&func, task_priority priority)
+    template<task_type _TaskType, typename _TaskContext, typename _Func, typename... _Args>
+    inline auto make_task(const std::string &name, task_priority priority, _Func &&func, _Args &&...args)
     {
-        return std::make_shared<task<_TaskType, _TaskContext, std::decay_t<_Func>>>(name, std::forward<_Func>(func), priority);
+        using tuple_type = std::tuple<std::decay_t<_Func>, std::decay_t<_Args>...>;
+        using task_type  = task<_TaskType, _TaskContext, tuple_type>;
+        return std::make_shared<task_type>
+        (
+            name,
+            priority,
+            tuple_type(std::forward<_Func>(func), std::forward<_Args>(args)...)
+        );
     }
     //----------------------------------------------------------------------------------------------
 
@@ -117,19 +138,19 @@ namespace oqpi {
     //----------------------------------------------------------------------------------------------
     // Type     : waitable
     // Context  : user defined
-    template<typename _TaskContext, typename _Func>
-    inline auto make_task(const std::string &name, _Func &&f, task_priority priority)
+    template<typename _TaskContext, typename _Func, typename... _Args>
+    inline auto make_task(const std::string &name, task_priority priority, _Func &&func, _Args &&...args)
     {
-        return make_task<task_type::waitable, _TaskContext, _Func>(name, std::forward<_Func>(f), priority);
+        return make_task<task_type::waitable, _TaskContext, _Func>(name, priority, std::forward<_Func>(func), std::forward<_Args>(args)...);
     }
 
     //----------------------------------------------------------------------------------------------
     // Type     : fire_and_forget
     // Context  : user defined
-    template<typename _TaskContext, typename _Func>
-    inline auto make_task_item(const std::string &name, _Func &&f, task_priority priority = task_priority::inherit)
+    template<typename _TaskContext, typename _Func, typename... _Args>
+    inline auto make_task_item(const std::string &name, task_priority priority, _Func &&func, _Args &&...args)
     {
-        return make_task<task_type::fire_and_forget, _TaskContext, _Func>(name, std::forward<_Func>(f), priority);
+        return make_task<task_type::fire_and_forget, _TaskContext, _Func>(name, priority, std::forward<_Func>(func), std::forward<_Args>(args)...);
     }
 
 } /*oqpi*/

@@ -5,7 +5,7 @@ namespace oqpi {
     //----------------------------------------------------------------------------------------------
     enum class task_priority
     {
-        highest = 0,
+        high = 0,
         above_normal,
         normal,
         below_normal,

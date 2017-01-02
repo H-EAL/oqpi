@@ -25,7 +25,7 @@ namespace oqpi {
     protected:
         //------------------------------------------------------------------------------------------
         // Default constructible
-        win_thread()
+        win_thread() noexcept
             : handle_(nullptr)
             , id_(0)
         {}

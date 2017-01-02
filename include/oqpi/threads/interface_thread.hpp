@@ -41,7 +41,7 @@ namespace oqpi { namespace interface {
     public:
         //------------------------------------------------------------------------------------------
         // Default constructible, constructs a non-joinable thread
-        thread() noexcept = default;
+        thread() = default;
 
         //------------------------------------------------------------------------------------------
         // Constructor from any callable object, creates a thread and runs the passed function
@@ -141,7 +141,7 @@ namespace oqpi { namespace interface {
 
             inline void operator()()
             {
-                this_thread::set_name(attributes_.name_);
+                this_thread::set_name(attributes_.name_.c_str());
                 run(std::make_integer_sequence<size_t, std::tuple_size<typename _Tuple>::value>());
             }
 

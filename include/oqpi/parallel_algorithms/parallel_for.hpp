@@ -63,13 +63,14 @@ namespace oqpi {
 
         const auto nbElements = partitioner.elementCount();
         const auto nbBatches  = partitioner.batchCount();
-        auto spTaskGroup      = make_parallel_group<_TaskType, _GroupContext>(sc, name, prio, nbBatches);
+        const auto &groupName = name + " (" + std::to_string(nbElements) + " items)";
+        auto spTaskGroup      = make_parallel_group<_TaskType, _GroupContext>(sc, groupName, prio, nbBatches);
         auto spPartitioner    = std::make_shared<_Partitioner>(partitioner);
 
         for (auto batchIndex = 0; batchIndex < nbBatches; ++batchIndex)
         {
-            const std::string &taskName = "Batch " + std::to_string(batchIndex + 1) + "/" + std::to_string(nbBatches) + " (" + std::to_string(nbElements) + " items)";
-            auto taskHandle = make_task_item<_TaskContext>(taskName,
+            const auto &taskName = "Batch " + std::to_string(batchIndex + 1) + "/" + std::to_string(nbBatches);
+            auto taskHandle = make_task_item<_TaskContext>(taskName, prio,
                 [batchIndex, func, spPartitioner]()
             {
                 int32_t first = 0;
@@ -81,7 +82,7 @@ namespace oqpi {
                         details::parallel_for_call(func, batchIndex, elementIndex);
                     }
                 }
-            }, prio);
+            });
 
             spTaskGroup->addTask(std::move(taskHandle));
         } 

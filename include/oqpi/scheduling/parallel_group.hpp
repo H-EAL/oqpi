@@ -53,7 +53,7 @@ namespace oqpi {
                 if (oqpi_ensure(taskCount > 0))
                 {
                     oqpi_check(taskCount == activeTasksCount_);
-                    for (int i = 0; i < taskCount; ++i)
+                    for (size_t i = 0; i < taskCount; ++i)
                     {
                         tasks_[i].executeSingleThreaded();
                     }
@@ -90,7 +90,7 @@ namespace oqpi {
             const auto taskCount = tasks_.size();
             if (oqpi_ensuref(taskCount > 0, "Trying to execute an empty group"))
             {
-                int i = 0;
+                size_t i = 0;
                 int scheduledTasks = 0;
 
                 while ((i = currentTaskIndex_.fetch_add(1)) < taskCount)
@@ -123,7 +123,7 @@ namespace oqpi {
             else if (maxSimultaneousTasks_ > 0)
             {
                 const auto taskCount = tasks_.size();
-                int i = 0;
+                size_t i = 0;
                 while ((i = currentTaskIndex_.fetch_add(1)) < taskCount)
                 {
                     if (!tasks_[i].isGrabbed() && !tasks_[i].isDone())
@@ -137,13 +137,13 @@ namespace oqpi {
 
     protected:
         // Number of tasks still running or yet to be run
-        std::atomic<int>            activeTasksCount_;
+        std::atomic<size_t>         activeTasksCount_;
         // Tasks of the fork
         std::vector<task_handle>    tasks_;
         // Number of maximum tasks this group is allowed to run in parallel
         const int                   maxSimultaneousTasks_;
         // Index of the next task to be scheduled
-        std::atomic<int>            currentTaskIndex_;
+        std::atomic<size_t>         currentTaskIndex_;
     };
     //----------------------------------------------------------------------------------------------
 

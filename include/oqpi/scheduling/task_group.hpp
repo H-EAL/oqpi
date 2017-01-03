@@ -87,9 +87,9 @@ namespace oqpi {
         // Called once all tasks of a group are done
         void notifyGroupDone()
         {
-            _GroupContext::group_onPostExecute();
             task_base::setDone();
             notifier<_TaskType>::notify();
+            _GroupContext::group_onPostExecute();
         }
 
     protected:

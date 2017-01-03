@@ -38,6 +38,9 @@
     <Filter Include="include\threading\_impl">
       <UniqueIdentifier>{b80e97f0-058b-45b4-9448-79c2ae895ed1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\_utils">
+      <UniqueIdentifier>{ccd08aa3-26d9-4843-8644-9e1dcf59d308}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\oqpi.hpp" />
@@ -48,15 +51,6 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\oqpi\parallel_algorithms.hpp">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\oqpi\platform.hpp">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\oqpi\empty_layer.hpp">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\oqpi\error_handling.hpp">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\oqpi\scheduling\task_base.hpp">
@@ -154,6 +148,15 @@
     </ClInclude>
     <ClInclude Include="..\..\include\oqpi\threading\win_thread.hpp">
       <Filter>include\threading\_impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\empty_layer.hpp">
+      <Filter>include\_utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\error_handling.hpp">
+      <Filter>include\_utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\platform.hpp">
+      <Filter>include\_utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

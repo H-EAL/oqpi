@@ -1,7 +1,7 @@
 #pragma once
 
 #include <chrono>
-#include "oqpi/threads/thread_attributes.hpp"
+#include "oqpi/threading/thread_attributes.hpp"
 
 
 namespace oqpi { namespace this_thread {

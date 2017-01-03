@@ -5,7 +5,7 @@
 #include <type_traits>
 
 #include "oqpi/empty_layer.hpp"
-#include "oqpi/threads/thread_attributes.hpp"
+#include "oqpi/threading/thread_attributes.hpp"
 
 
 namespace oqpi { namespace itfc {

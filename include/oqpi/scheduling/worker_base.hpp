@@ -4,9 +4,9 @@
 #include <atomic>
 #include <memory>
 
-#include "oqpi/threads/thread_attributes.hpp"
 #include "oqpi/scheduling/task_type.hpp"
 #include "oqpi/scheduling/task_handle.hpp"
+#include "oqpi/threading/thread_attributes.hpp"
 
 
 namespace oqpi {

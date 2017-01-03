@@ -74,7 +74,7 @@ namespace oqpi {
         // Interface
         virtual void execute()                  = 0;
         virtual void executeSingleThreaded()    = 0;
-        virtual void wait()                     = 0;
+        virtual void wait() const               = 0;
         virtual void activeWait()               = 0;
 
     public:
@@ -111,15 +111,7 @@ namespace oqpi {
             return done_.load();
         }
 
-        void setDone()
-        {
-            done_.store(true);
-
-            if (spParentGroup_)
-            {
-                //spParentGroup_->oneTaskDone();
-            }
-        }
+        void setDone();
 
         const std::string& getName() const
         {

@@ -80,7 +80,7 @@ namespace oqpi {
         }
 
         //------------------------------------------------------------------------------------------
-        virtual void wait() override final
+        virtual void wait() const override final
         {
             notifier_type::wait();
         }
@@ -141,7 +141,7 @@ namespace oqpi {
     template<typename _TaskContext, typename _Func, typename... _Args>
     inline auto make_task(const std::string &name, task_priority priority, _Func &&func, _Args &&...args)
     {
-        return make_task<task_type::waitable, _TaskContext, _Func>(name, priority, std::forward<_Func>(func), std::forward<_Args>(args)...);
+        return make_task<task_type::waitable, _TaskContext>(name, priority, std::forward<_Func>(func), std::forward<_Args>(args)...);
     }
 
     //----------------------------------------------------------------------------------------------
@@ -150,7 +150,7 @@ namespace oqpi {
     template<typename _TaskContext, typename _Func, typename... _Args>
     inline auto make_task_item(const std::string &name, task_priority priority, _Func &&func, _Args &&...args)
     {
-        return make_task<task_type::fire_and_forget, _TaskContext, _Func>(name, priority, std::forward<_Func>(func), std::forward<_Args>(args)...);
+        return make_task<task_type::fire_and_forget, _TaskContext>(name, priority, std::forward<_Func>(func), std::forward<_Args>(args)...);
     }
 
 } /*oqpi*/

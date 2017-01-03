@@ -34,5 +34,7 @@ namespace oqpi {
     template<typename... _ContextList>
     using task_context_container = context_container<task_base, _ContextList...>;
     //----------------------------------------------------------------------------------------------
+    using empty_task_context = task_context_container<>;
+    //----------------------------------------------------------------------------------------------
 
 } /*oqpi*/

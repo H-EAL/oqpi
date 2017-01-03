@@ -9,10 +9,10 @@
 namespace oqpi {
 
     template<typename _Dispatcher, typename _DefaultGroupContext, typename _DefaultTaskContext>
-    struct td
+    struct helpers
     {
         //------------------------------------------------------------------------------------------
-        using self_type = td<_Dispatcher, _DefaultGroupContext, _DefaultTaskContext>;
+        using self_type = helpers<_Dispatcher, _DefaultGroupContext, _DefaultTaskContext>;
 
 
         //------------------------------------------------------------------------------------------
@@ -190,7 +190,7 @@ namespace oqpi {
 
     //----------------------------------------------------------------------------------------------
     template<typename _Dispatcher, typename _DefaultGroupContext, typename _DefaultTaskContext>
-    _Dispatcher td<_Dispatcher, _DefaultGroupContext, _DefaultTaskContext>::dispatcher_;
+    _Dispatcher helpers<_Dispatcher, _DefaultGroupContext, _DefaultTaskContext>::dispatcher_;
     //----------------------------------------------------------------------------------------------
 
 } /*oqpi*/

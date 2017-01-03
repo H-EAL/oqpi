@@ -29,7 +29,7 @@ using dispatcher_type = oqpi::dispatcher<cqueue>;
 using tc = oqpi::task_context_container<timer_task_context>;
 using gc = oqpi::group_context_container<timer_group_context>;
 
-using oqpi_tk = oqpi::td<dispatcher_type, gc, tc>;
+using oqpi_tk = oqpi::helpers<dispatcher_type, gc, tc>;
 
 
 using server = websocketpp::server<websocketpp::config::asio>;

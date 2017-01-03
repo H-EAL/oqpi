@@ -15,16 +15,22 @@ public:
     inline void onPreExecute()
     {
         startedAt_ = std::chrono::high_resolution_clock::now();
+        startedOnCore_ = oqpi::this_thread::get_current_core();
     }
 
     inline void onPostExecute()
     {
         stoppedAt_ = std::chrono::high_resolution_clock::now();
+        stoppedOnCore_ = oqpi::this_thread::get_current_core();
 
         std::string msg = owner()->getName();
         msg += " took ";
-        msg += std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(stoppedAt_ - startedAt_).count());
-        msg += "ms\n";
+        msg += std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(stoppedAt_ - startedAt_).count() / 1000.0);
+        msg += "ms, it started on core ";
+        msg += std::to_string(startedOnCore_);
+        msg += ", and stopped on core ";
+        msg += std::to_string(stoppedOnCore_);
+        msg += "\n";
         std::cout << msg;
     }
 
@@ -32,6 +38,8 @@ private:
     std::chrono::time_point<std::chrono::high_resolution_clock> createdAt_;
     std::chrono::time_point<std::chrono::high_resolution_clock> startedAt_;
     std::chrono::time_point<std::chrono::high_resolution_clock> stoppedAt_;
+    int32_t startedOnCore_ = -1;
+    int32_t stoppedOnCore_ = -1;
 };
 
 
@@ -53,11 +61,25 @@ public:
     inline void onPreExecute()
     {
         startedAt_ = std::chrono::high_resolution_clock::now();
+        startedOnCore_ = oqpi::this_thread::get_current_core();
     }
 
     inline void onPostExecute()
     {
         stoppedAt_ = std::chrono::high_resolution_clock::now();
+        stoppedOnCore_ = oqpi::this_thread::get_current_core();
+
+
+        std::string msg = "Group ";
+        msg += owner()->getName();
+        msg += " took ";
+        msg += std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(stoppedAt_ - startedAt_).count()/1000.0);
+        msg += "ms, it started on core ";
+        msg += std::to_string(startedOnCore_);
+        msg += ", and stopped on core ";
+        msg += std::to_string(stoppedOnCore_);
+        msg +="\n";
+        std::cout << msg;
     }
 
 private:
@@ -65,4 +87,6 @@ private:
     std::chrono::time_point<std::chrono::high_resolution_clock> startedAt_;
     std::chrono::time_point<std::chrono::high_resolution_clock> stoppedAt_;
     int32_t taskCount_;
+    int32_t startedOnCore_ = -1;
+    int32_t stoppedOnCore_ = -1;
 };

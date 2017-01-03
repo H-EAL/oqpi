@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript">
+	function onLoadFunc()
+	{
+		var socket = new WebSocket("ws://localhost:9002");
+		
+		socket.onopen = function(e){ alert(e); } /*on "écoute" pour savoir si la connexion vers le serveur websocket s'est bien faite */
+		socket.onmessage = function(e){ alert(e); } /*on récupère les messages provenant du serveur websocket */
+		socket.onclose = function(e){ alert(e); } /*on est informé lors de la fermeture de la connexion vers le serveur*/
+		socket.onerror = function(e){ alert(e); } /*on traite les cas d'erreur*/
+		socket.send('mon message');
+		socket.close();
+	}
+</script>
+</head>
+<body onLoad="onLoadFunc();">
+<p>blash</p>
+</body>
+</html>

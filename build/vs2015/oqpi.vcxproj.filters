@@ -36,6 +36,9 @@
     <Filter Include="include\scheduling\_workers">
       <UniqueIdentifier>{3c69bfd8-f566-4365-bb69-f9b3b2df27d3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\scheduling\_groups">
+      <UniqueIdentifier>{703cc9c8-4e70-417b-9499-dcef50807375}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\oqpi.hpp" />
@@ -102,9 +105,6 @@
     <ClInclude Include="..\..\include\oqpi\threads\interface_thread.hpp">
       <Filter>include\threads</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\oqpi\scheduling\default_contexts.hpp">
-      <Filter>include\scheduling</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\oqpi\scheduling\dispatcher.hpp">
       <Filter>include\scheduling</Filter>
     </ClInclude>
@@ -131,6 +131,21 @@
     </ClInclude>
     <ClInclude Include="..\..\include\oqpi\scheduling\task_scheduling.hpp">
       <Filter>include\scheduling</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\scheduling\task_group_base.hpp">
+      <Filter>include\scheduling\_groups</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\scheduling\task_group.hpp">
+      <Filter>include\scheduling\_groups</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\scheduling\parallel_group.hpp">
+      <Filter>include\scheduling\_groups</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\scheduling\sequence_group.hpp">
+      <Filter>include\scheduling\_groups</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\scheduling\group_context.hpp">
+      <Filter>include\scheduling\_groups</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -3,7 +3,7 @@
 #include "oqpi/empty_layer.hpp"
 
 
-namespace oqpi { namespace interface {
+namespace oqpi { namespace itfc {
 
     //----------------------------------------------------------------------------------------------
     template
@@ -78,4 +78,4 @@ namespace oqpi { namespace interface {
     };
     //----------------------------------------------------------------------------------------------
 
-} /*interface*/ } /*oqpi*/
+} /*itfc*/ } /*oqpi*/

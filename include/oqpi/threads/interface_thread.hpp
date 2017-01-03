@@ -8,7 +8,7 @@
 #include "oqpi/threads/thread_attributes.hpp"
 
 
-namespace oqpi { namespace interface {
+namespace oqpi { namespace itfc {
 
     //----------------------------------------------------------------------------------------------
     // Thread interface, all thread implementation need to comply to this interface
@@ -177,4 +177,4 @@ namespace oqpi { namespace interface {
         }
     };
 
-} /*interface*/ } /*oqpi*/
+} /*itfc*/ } /*oqpi*/

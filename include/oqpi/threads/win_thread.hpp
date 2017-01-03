@@ -12,8 +12,8 @@ namespace oqpi {
     // to be able to select the right implementation.
     using thread_impl = class win_thread;
     //----------------------------------------------------------------------------------------------
-	class win_thread
-	{
+    class win_thread
+    {
     protected:
         //------------------------------------------------------------------------------------------
         static uint32_t hardware_concurrency()
@@ -79,7 +79,7 @@ namespace oqpi {
             const auto lpStartAddress       = LPTHREAD_START_ROUTINE{ [](LPVOID pData) -> DWORD
             {
                 auto upLauncher = std::unique_ptr<_Launcher>(static_cast<_Launcher*>(pData));
-                if (upLauncher != nullptr)
+                if (oqpi_ensure(upLauncher != nullptr))
                 {
                     (*upLauncher)();
                 }
@@ -336,7 +336,7 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         HANDLE handle_;
         DWORD  id_;
-	};
+    };
 
 
     namespace this_thread {

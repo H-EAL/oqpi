@@ -5,48 +5,48 @@
 
 namespace oqpi {
 
-	//----------------------------------------------------------------------------------------------
-	enum class thread_priority
-	{
-		lowest,
-		below_normal,
-		normal,
-		above_normal,
-		highest,
+    //----------------------------------------------------------------------------------------------
+    enum class thread_priority
+    {
+        lowest,
+        below_normal,
+        normal,
+        above_normal,
+        highest,
         time_critical,
 
         count
-	};
-	//----------------------------------------------------------------------------------------------
+    };
+    //----------------------------------------------------------------------------------------------
 
-	//----------------------------------------------------------------------------------------------
-	enum core_affinity : uint32_t
-	{
-		core0 = 1,
-		core1 = core0 << 1,
-		core2 = core1 << 1,
-		core3 = core2 << 1,
-		core4 = core3 << 1,
-		core5 = core4 << 1,
-		core6 = core5 << 1,
-		core7 = core6 << 1,
+    //----------------------------------------------------------------------------------------------
+    enum core_affinity : uint32_t
+    {
+        core0 = 1,
+        core1 = core0 << 1,
+        core2 = core1 << 1,
+        core3 = core2 << 1,
+        core4 = core3 << 1,
+        core5 = core4 << 1,
+        core6 = core5 << 1,
+        core7 = core6 << 1,
 
-		all_cores = (std::numeric_limits<uint32_t>::max)()
-	};
-	//----------------------------------------------------------------------------------------------
+        all_cores = (std::numeric_limits<uint32_t>::max)()
+    };
+    //----------------------------------------------------------------------------------------------
 
-	//----------------------------------------------------------------------------------------------
-	struct thread_attributes
-	{
+    //----------------------------------------------------------------------------------------------
+    struct thread_attributes
+    {
         // Thread's name that will appear in various debug tools
-		std::string     name_;
+        std::string     name_;
         // The maximal stack size of the thread, 0 will use the system's default value
-		uint32_t		stackSize_;
+        uint32_t		stackSize_;
         // Specifies which cores this thread is allowed to run on.
-		core_affinity   coreAffinityMask_;
+        core_affinity   coreAffinityMask_;
         // The higher the priority the bigger the time slices this thread will be given in the 
         // underlying OS scheduler.
-		thread_priority priority_;
+        thread_priority priority_;
         // Whether or not to launch the thread detached
         bool            detached_;
 
@@ -65,7 +65,7 @@ namespace oqpi {
             , priority_         (priority)
             , detached_         (detached)
         {}
-	};
-	//----------------------------------------------------------------------------------------------
+    };
+    //----------------------------------------------------------------------------------------------
 
 }

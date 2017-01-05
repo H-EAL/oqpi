@@ -1,2 +1,2 @@
 # oqpi
-High performance multithreading toolkit for C++11
+High performance multithreading toolkit for C++14

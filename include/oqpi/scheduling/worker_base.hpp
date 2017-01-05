@@ -40,7 +40,7 @@ namespace oqpi {
 
 
     //----------------------------------------------------------------------------------------------
-    // A config used to create one or several workers when registering to the dispatcher
+    // A config used to create one or several workers when registering to the scheduler
     struct worker_config
     {
         thread_attributes   threadAttributes;

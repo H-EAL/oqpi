@@ -92,10 +92,10 @@ namespace oqpi {
         // CLANG/LLVM will evaluate a static_assert(false) even if the function is never called
         // So we must trick it to not evaluate it by templating the assert condition
         template<bool _UndefinedFunction = false>
-        void reset(...)
+        void reset()
         {
             static_assert(_UndefinedFunction, "reset() is not implemented for this event "
-                "configuration, use wbmtl::event instead of wbmtl::auto_reset_event "
+                "configuration, use oqpi::event instead of oqpi::auto_reset_event "
                 "if you want to manually reset the event");
         }
     };

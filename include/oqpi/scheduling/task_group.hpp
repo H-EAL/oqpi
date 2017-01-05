@@ -8,7 +8,7 @@
 namespace oqpi {
 
     //----------------------------------------------------------------------------------------------
-    template<typename _Dispatcher, task_type _TaskType, typename _GroupContext>
+    template<typename _Scheduler, task_type _TaskType, typename _GroupContext>
     class task_group
         : public task_group_base
         , public notifier<_TaskType>
@@ -16,11 +16,11 @@ namespace oqpi {
     {
     public:
         //------------------------------------------------------------------------------------------
-        task_group(_Dispatcher &disp, std::string name, task_priority priority)
+        task_group(_Scheduler &sc, std::string name, task_priority priority)
             : task_group_base(std::move(name), priority)
             , notifier<_TaskType>(name_)
             , _GroupContext(this)
-            , dispatcher_(disp)
+            , scheduler_(sc)
         {}
 
         //------------------------------------------------------------------------------------------
@@ -93,16 +93,16 @@ namespace oqpi {
         }
 
     protected:
-        alignas(_Dispatcher&)_Dispatcher &dispatcher_;
+        alignas(_Scheduler&)_Scheduler &scheduler_;
     };
     //----------------------------------------------------------------------------------------------
 
 
     //----------------------------------------------------------------------------------------------
-    template<template<typename, task_type, typename> class _TaskGroupType, task_type _TaskType, typename _GroupContext, typename _Dispatcher, typename... _Args>
-    inline auto make_task_group(_Dispatcher &disp, const std::string &name, _Args &&...args)
+    template<template<typename, task_type, typename> class _TaskGroupType, task_type _TaskType, typename _GroupContext, typename _Scheduler, typename... _Args>
+    inline auto make_task_group(_Scheduler &sc, const std::string &name, _Args &&...args)
     {
-        return std::make_shared<_TaskGroupType<_Dispatcher, _TaskType, _GroupContext>>(disp, name, std::forward<_Args>(args)...);
+        return std::make_shared<_TaskGroupType<_Scheduler, _TaskType, _GroupContext>>(sc, name, std::forward<_Args>(args)...);
     }
     //----------------------------------------------------------------------------------------------
 

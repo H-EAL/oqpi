@@ -12,29 +12,29 @@
 namespace oqpi {
 
     //----------------------------------------------------------------------------------------------
-    // The dispatcher holds several task queues (one queue per priority).
+    // The scheduler holds several task queues (one queue per priority).
     // It also holds a list of workers. Is then assigns tasks to workers according to priority
-    // rules. A worker can be assigned to one to several priorities. The dispatcher will always
+    // rules. A worker can be assigned to one to several priorities. The scheduler will always
     // check the queue with the highest priority first then go down to the lowest fi and only if 
     // the highest priority queues are empty.
     //
     template<template<typename> class _TaskQueueType>
-    class dispatcher
+    class scheduler
     {
     public:
         static_assert(std::is_default_constructible<_TaskQueueType<task_handle>>::value, "_TaskQueueType must be default constructible.");
 
     public:
-        using self_type = dispatcher<_TaskQueueType>;
+        using self_type = scheduler<_TaskQueueType>;
 
     public:
-        dispatcher()
+        scheduler()
             : running_(false)
         {
             std::memset(&workersPerPrio_[0], 0, sizeof(workersPerPrio_));
         }
 
-        ~dispatcher()
+        ~scheduler()
         {
             if (running_.load())
             {
@@ -42,7 +42,7 @@ namespace oqpi {
             }
         }
 
-        dispatcher(const self_type &)               = delete;
+        scheduler(const self_type &)               = delete;
         self_type& operator= (const self_type &)    = delete;
 
     public:
@@ -93,7 +93,7 @@ namespace oqpi {
         // Check if the config is valid and start the workers
         void start()
         {
-            if (oqpi_ensuref(running_.load() == false, "Dispatcher already started."))
+            if (oqpi_ensuref(running_.load() == false, "Scheduler already started."))
             {
                 for (int prio = 0; prio < PRIO_COUNT; ++prio)
                 {

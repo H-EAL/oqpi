@@ -6,16 +6,16 @@
 namespace oqpi {
 
     //----------------------------------------------------------------------------------------------
-    template<typename _Thread, typename _Notifier, typename _Dispatcher, typename _WorkerContext>
+    template<typename _Thread, typename _Notifier, typename _Scheduler, typename _WorkerContext>
     class worker
         : public worker_base
         , public _WorkerContext
     {
     public:
-        worker(_Dispatcher &disp, int32_t id, const worker_config &config)
+        worker(_Scheduler &sc, int32_t id, const worker_config &config)
             : worker_base(id, config)
             , _WorkerContext(this)
-            , dispatcher_(disp)
+            , scheduler_(sc)
             , notifier_("WorkerNotifier/" + config.threadAttributes.name_ + std::to_string(id))
             , running_(false)
         {}
@@ -95,7 +95,7 @@ namespace oqpi {
                 // Inform the context that we're potentially going idle while waiting for a task to work on
                 _WorkerContext::worker_onIdle();
                 // Signal to the scheduler that we want a task to work on
-                dispatcher_.signalAvailableWorker(*this);
+                scheduler_.signalAvailableWorker(*this);
                 // At this point we either have a task to work on or we've been waken up to quit the thread
                 oqpi_check(!worker_base::isAvailable() || !isRunning());
                 // We consider ourselves active either way
@@ -127,7 +127,7 @@ namespace oqpi {
 
     private:
         // Reference to the parent scheduler, used to call signalAvailableWorker
-        _Dispatcher         &dispatcher_;
+        _Scheduler         &scheduler_;
         // The underlying thread
         _Thread             thread_;
         // Notifier used to signal/put to sleep the thread

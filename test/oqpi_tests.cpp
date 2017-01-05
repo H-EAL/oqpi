@@ -24,12 +24,12 @@ using cqueue = qqueue<T, std::mutex>;
 volatile bool a = true;
 using namespace std::chrono_literals;
 
-using dispatcher_type = oqpi::dispatcher<cqueue>;
+using scheduler_type = oqpi::scheduler<cqueue>;
 
 using tc = oqpi::task_context_container<timer_task_context>;
 using gc = oqpi::group_context_container<timer_group_context>;
 
-using oqpi_tk = oqpi::helpers<dispatcher_type, gc, tc>;
+using oqpi_tk = oqpi::helpers<scheduler_type, gc, tc>;
 
 
 using server = websocketpp::server<websocketpp::config::asio>;
@@ -84,15 +84,15 @@ int main()
     };
     
 
-    oqpi_tk::dispatcher_.registerWorkers<thread, semaphore>(workersConfig);
-    oqpi_tk::dispatcher_.start();
+    oqpi_tk::scheduler_.registerWorkers<thread, semaphore>(workersConfig);
+    oqpi_tk::scheduler_.start();
 
 
 //     auto t1 = oqpi::make_task<tc>("MyWaitableTask", oqpi::task_priority::high, SleepFor, 500);
 //     auto t2 = oqpi::make_task_item<tc>("MyFireAndForgetTask", oqpi::task_priority::high, SleepFor, 200);
 // 
-//     oqpi_tk::dispatch_task(oqpi::task_handle(t1));
-//     oqpi_tk::dispatch_task(oqpi::task_handle(t2));
+//     oqpi_tk::schedule_task(oqpi::task_handle(t1));
+//     oqpi_tk::schedule_task(oqpi::task_handle(t2));
 //     
 //     auto tg = oqpi_tk::make_parallel_group<oqpi::task_type::waitable>("MyFork", oqpi::task_priority::normal, 5);
 //     int32_t t = 0;
@@ -101,18 +101,18 @@ int main()
 //     tg->addTask(oqpi_tk::make_task_item("MyFT3", oqpi::task_priority::normal, SleepFor, t += 10));
 //     tg->addTask(oqpi_tk::make_task_item("MyFT4", oqpi::task_priority::normal, SleepFor, t += 10));
 // 
-//     oqpi_tk::dispatch_task(oqpi::task_handle(tg));
+//     oqpi_tk::schedule_task(oqpi::task_handle(tg));
 // 
 
     const auto part = oqpi::simple_partitioner(40, 4);
-    oqpi::parallel_for<gc, tc>(oqpi_tk::dispatcher_, "ParallelFor", part, oqpi::task_priority::normal, SleepFor);
+    oqpi::parallel_for<gc, tc>(oqpi_tk::scheduler_, "ParallelFor", part, oqpi::task_priority::normal, SleepFor);
 
 //     th.join();
 
     //tg->wait();
 
     oqpi::this_thread::sleep_for(200ms);
-    oqpi_tk::dispatcher_.stop();
+    oqpi_tk::scheduler_.stop();
 
     return 0;
 }

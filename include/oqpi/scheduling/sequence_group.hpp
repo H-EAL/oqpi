@@ -18,14 +18,14 @@ namespace oqpi {
     // This group is not thread safe, meaning the user has to ensure thread safety herself when
     // adding tasks to this kind of group.
     //
-    template<typename _Dispatcher, task_type _TaskType, typename _GroupContext>
+    template<typename _Scheduler, task_type _TaskType, typename _GroupContext>
     class sequence_group final
-        : public task_group<_Dispatcher, _TaskType, _GroupContext>
+        : public task_group<_Scheduler, _TaskType, _GroupContext>
     {
     public:
         //------------------------------------------------------------------------------------------
-        sequence_group(_Dispatcher &disp, std::string name, task_priority priority, int32_t nbTasks = 0)
-            : task_group<_Dispatcher, _TaskType, _GroupContext>(disp, std::move(name), priority)
+        sequence_group(_Scheduler &sc, std::string name, task_priority priority, int32_t nbTasks = 0)
+            : task_group<_Scheduler, _TaskType, _GroupContext>(sc, std::move(name), priority)
             , currentIndex_(0)
         {
             tasks_.reserve(nbTasks);
@@ -78,7 +78,7 @@ namespace oqpi {
         {
             if (++currentIndex_ < tasks_.size())
             {
-                this->dispatcher_.add(tasks_[currentIndex_]);
+                this->scheduler_.add(tasks_[currentIndex_]);
             }
             else
             {

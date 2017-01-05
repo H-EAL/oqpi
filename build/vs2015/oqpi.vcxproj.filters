@@ -80,9 +80,6 @@
     <ClInclude Include="..\..\include\oqpi\synchronization\event.hpp">
       <Filter>include\synchronization</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\oqpi\scheduling\dispatcher.hpp">
-      <Filter>include\scheduling</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\oqpi\scheduling\worker_base.hpp">
       <Filter>include\scheduling\_workers</Filter>
     </ClInclude>
@@ -157,6 +154,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\oqpi\platform.hpp">
       <Filter>include\_utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\scheduling\scheduler.hpp">
+      <Filter>include\scheduling</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

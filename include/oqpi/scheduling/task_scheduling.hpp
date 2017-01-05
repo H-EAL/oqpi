@@ -8,28 +8,28 @@
 
 namespace oqpi {
 
-    template<typename _Dispatcher, typename _DefaultGroupContext, typename _DefaultTaskContext>
+    template<typename _Scheduler, typename _DefaultGroupContext, typename _DefaultTaskContext>
     struct helpers
     {
         //------------------------------------------------------------------------------------------
-        using self_type = helpers<_Dispatcher, _DefaultGroupContext, _DefaultTaskContext>;
+        using self_type = helpers<_Scheduler, _DefaultGroupContext, _DefaultTaskContext>;
 
 
         //------------------------------------------------------------------------------------------
         // Static instance
-        static _Dispatcher dispatcher_;
+        static _Scheduler scheduler_;
 
 
         //------------------------------------------------------------------------------------------
         // Add a task to the scheduler
-        inline static task_handle dispatch_task(const task_handle &hTask)
+        inline static task_handle schedule_task(const task_handle &hTask)
         {
-            return dispatcher_.add(hTask);
+            return scheduler_.add(hTask);
         }
         //------------------------------------------------------------------------------------------
-        inline static task_handle dispatch_task(task_handle &&hTask)
+        inline static task_handle schedule_task(task_handle &&hTask)
         {
-            return dispatcher_.add(std::move(hTask));
+            return scheduler_.add(std::move(hTask));
         }
 
         //------------------------------------------------------------------------------------------
@@ -39,27 +39,27 @@ namespace oqpi {
         // Type     : user defined
         // Context  : user defined
         template<task_type _TaskType, typename _TaskContext, typename _Func>
-        inline static task_handle dispatch_task(const std::string &name, task_priority prio, _Func &&f)
+        inline static task_handle schedule_task(const std::string &name, task_priority prio, _Func &&f)
         {
-            return dispatch_task(make_task<_TaskType, _TaskContext>(name, prio, std::forward<_Func>(f)));
+            return schedule_task(make_task<_TaskType, _TaskContext>(name, prio, std::forward<_Func>(f)));
         }
 
         //------------------------------------------------------------------------------------------
         // Type     : waitable
         // Context  : user defined
         template<typename _TaskContext, typename _Func>
-        inline static task_handle dispatch_task(const std::string &name, task_priority prio, _Func &&f)
+        inline static task_handle schedule_task(const std::string &name, task_priority prio, _Func &&f)
         {
-            return dispatch_task<task_type::waitable, _TaskContext>(name, prio, std::forward<_Func>(f));
+            return schedule_task<task_type::waitable, _TaskContext>(name, prio, std::forward<_Func>(f));
         }
 
         //------------------------------------------------------------------------------------------
         // Type     : waitable
         // Context  : default
         template<typename _Func>
-        inline static task_handle dispatch_task(const std::string &name, task_priority prio, _Func &&f)
+        inline static task_handle schedule_task(const std::string &name, task_priority prio, _Func &&f)
         {
-            return dispatch_task<_DefaultTaskContext>(name, prio, std::forward<_Func>(f));
+            return schedule_task<_DefaultTaskContext>(name, prio, std::forward<_Func>(f));
         }
 
         //------------------------------------------------------------------------------------------
@@ -68,7 +68,7 @@ namespace oqpi {
         template<typename _TaskContext, typename _Func>
         inline static void fire_and_forget_task(const std::string &name, task_priority prio, _Func &&f)
         {
-            dispatch_task<task_type::fire_and_forget, _TaskContext>(name, prio, std::forward<_Func>(f));
+            schedule_task<task_type::fire_and_forget, _TaskContext>(name, prio, std::forward<_Func>(f));
         }
 
         //------------------------------------------------------------------------------------------
@@ -83,7 +83,7 @@ namespace oqpi {
 
 
         //------------------------------------------------------------------------------------------
-        // Create a task, the task is NOT added to the dispatcher
+        // Create a task, the task is NOT added to the scheduler
         // Type     : user defined
         // Context  : user defined
         template<task_type _TaskType, typename _TaskContext, typename _Func, typename... _Args>
@@ -147,14 +147,14 @@ namespace oqpi {
 
 
         //------------------------------------------------------------------------------------------
-        // Create a parallel group, the group is NOT added to the dispatcher
+        // Create a parallel group, the group is NOT added to the scheduler
         //
         // Type     : user defined
         // Context  : user defined
         template<task_type _TaskType, typename _GroupContext>
         inline static auto make_parallel_group(const std::string &name, task_priority prio, int32_t taskCount = 0, int32_t maxSimultaneousTasks = 0)
         {
-            return oqpi::make_parallel_group<_TaskType, _GroupContext>(dispatcher_, name, prio, taskCount, maxSimultaneousTasks);
+            return oqpi::make_parallel_group<_TaskType, _GroupContext>(scheduler_, name, prio, taskCount, maxSimultaneousTasks);
         }
 
         //------------------------------------------------------------------------------------------
@@ -168,14 +168,14 @@ namespace oqpi {
 
 
         //------------------------------------------------------------------------------------------
-        // Creates a sequence of tasks, the group is NOT added to the dispatcher
+        // Creates a sequence of tasks, the group is NOT added to the scheduler
         //
         // Type     : user defined
         // Context  : user defined
         template<task_type _TaskType, typename _GroupContext>
         inline static auto make_sequence_group(const std::string &name, task_priority prio, int32_t taskCount = 0)
         {
-            return make_sequence_group<_TaskType, _GroupContext>(dispatcher_, name, prio, taskCount);
+            return make_sequence_group<_TaskType, _GroupContext>(scheduler_, name, prio, taskCount);
         }
 
         //------------------------------------------------------------------------------------------
@@ -189,8 +189,8 @@ namespace oqpi {
     };
 
     //----------------------------------------------------------------------------------------------
-    template<typename _Dispatcher, typename _DefaultGroupContext, typename _DefaultTaskContext>
-    _Dispatcher helpers<_Dispatcher, _DefaultGroupContext, _DefaultTaskContext>::dispatcher_;
+    template<typename _Scheduler, typename _DefaultGroupContext, typename _DefaultTaskContext>
+    _Scheduler helpers<_Scheduler, _DefaultGroupContext, _DefaultTaskContext>::scheduler_;
     //----------------------------------------------------------------------------------------------
 
 } /*oqpi*/

@@ -21,14 +21,14 @@ namespace oqpi {
     // tasks to it.
     // For a thread safe version of such a group see open_parallel_group.
     //
-    template<typename _Dispatcher, task_type _TaskType, typename _GroupContext>
+    template<typename _Scheduler, task_type _TaskType, typename _GroupContext>
     class parallel_group final
-        : public task_group<_Dispatcher, _TaskType, _GroupContext>
+        : public task_group<_Scheduler, _TaskType, _GroupContext>
     {
     public:
         //------------------------------------------------------------------------------------------
-        parallel_group(_Dispatcher &sc, std::string name, task_priority priority, int32_t nbTasks = 0, int32_t maxSimultaneousTasks = 0)
-            : task_group<_Dispatcher, _TaskType, _GroupContext>(sc, std::move(name), priority)
+        parallel_group(_Scheduler &sc, std::string name, task_priority priority, int32_t nbTasks = 0, int32_t maxSimultaneousTasks = 0)
+            : task_group<_Scheduler, _TaskType, _GroupContext>(sc, std::move(name), priority)
             , activeTasksCount_(0)
             , maxSimultaneousTasks_(maxSimultaneousTasks)
             , currentTaskIndex_(1)
@@ -97,7 +97,7 @@ namespace oqpi {
                 {
                     if (!tasks_[i].isGrabbed() && !tasks_[i].isDone())
                     {
-                        this->dispatcher_.add(tasks_[i]);
+                        this->scheduler_.add(tasks_[i]);
                         if (maxSimultaneousTasks_ > 0 && ++scheduledTasks >= maxSimultaneousTasks_-1)
                         {
                             break;
@@ -128,7 +128,7 @@ namespace oqpi {
                 {
                     if (!tasks_[i].isGrabbed() && !tasks_[i].isDone())
                     {
-                        this->dispatcher_.add(tasks_[i]);
+                        this->scheduler_.add(tasks_[i]);
                         break;
                     }
                 }
@@ -149,10 +149,10 @@ namespace oqpi {
 
     
     //----------------------------------------------------------------------------------------------
-    template<task_type _TaskType, typename _GroupContext, typename _Dispatcher>
-    inline auto make_parallel_group(_Dispatcher &disp, const std::string &name, task_priority prio, int32_t taskCount = 0, int32_t maxSimultaneousTasks = 0)
+    template<task_type _TaskType, typename _GroupContext, typename _Scheduler>
+    inline auto make_parallel_group(_Scheduler &sc, const std::string &name, task_priority prio, int32_t taskCount = 0, int32_t maxSimultaneousTasks = 0)
     {
-        return make_task_group<parallel_group, _TaskType, _GroupContext>(disp, name, prio, taskCount, maxSimultaneousTasks);
+        return make_task_group<parallel_group, _TaskType, _GroupContext>(sc, name, prio, taskCount, maxSimultaneousTasks);
     }
     //----------------------------------------------------------------------------------------------
 

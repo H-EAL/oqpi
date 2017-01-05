@@ -126,7 +126,7 @@ inline eAssertResult assert_function(const char *file, int line, const char *exp
 #else
     std::cout << strMessage;
     return eAR_Retry;
-#endif // WBMTL_MT_TARGET_WIN
+#endif // OQPI_PLATFORM_WIN
 }
 //--------------------------------------------------------------------------------------------------
 inline void debugger_break()

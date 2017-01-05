@@ -91,7 +91,7 @@ namespace oqpi {
             if (oqpi_ensuref(taskCount > 0, "Trying to execute an empty group"))
             {
                 size_t i = 0;
-                int scheduledTasks = 0;
+                int32_t scheduledTasks = 0;
 
                 while ((i = currentTaskIndex_.fetch_add(1)) < taskCount)
                 {
@@ -141,7 +141,7 @@ namespace oqpi {
         // Tasks of the fork
         std::vector<task_handle>    tasks_;
         // Number of maximum tasks this group is allowed to run in parallel
-        const int                   maxSimultaneousTasks_;
+        const int32_t               maxSimultaneousTasks_;
         // Index of the next task to be scheduled
         std::atomic<size_t>         currentTaskIndex_;
     };

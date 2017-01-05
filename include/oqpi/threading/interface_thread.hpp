@@ -25,11 +25,11 @@ namespace oqpi { namespace itfc {
     public:
         //------------------------------------------------------------------------------------------
         // Whether the thread has augmented layer(s) or not
-        static constexpr auto is_lean	= is_empty_layer<_Layer>::value;
+        static constexpr auto is_lean   = is_empty_layer<_Layer>::value;
         // The platform specific implementation
-        using thread_impl				= _Impl;
+        using thread_impl               = _Impl;
         // The actual base type taking into account the presence or absence of augmentation layer(s)
-        using base_type					= typename std::conditional<is_lean, thread_impl, _Layer<thread_impl>>::type;
+        using base_type                 = typename std::conditional<is_lean, thread_impl, _Layer<thread_impl>>::type;
         // The actual type
         using self_type                 = thread<thread_impl, _Layer>;
         
@@ -54,9 +54,9 @@ namespace oqpi { namespace itfc {
         }
 
         //------------------------------------------------------------------------------------------
-        // Creates a thread specifying only the its name. Uses default thread configuration.
+        // Creates a thread specifying only its name. Uses default thread configuration.
         template<typename _Func, typename... _Args>
-        explicit thread(const char *name, _Func &&func, _Args &&...args)
+        explicit thread(const std::string &name, _Func &&func, _Args &&...args)
             : thread(thread_attributes(name), std::forward<_Func>(func), std::forward<_Args>(args)...)
         {}
 

@@ -38,46 +38,46 @@ namespace oqpi {
         //
         // Type     : user defined
         // Context  : user defined
-        template<task_type _TaskType, typename _TaskContext, typename _Func>
-        inline static task_handle schedule_task(const std::string &name, task_priority prio, _Func &&f)
+        template<task_type _TaskType, typename _TaskContext, typename _Func, typename... _Args>
+        inline static task_handle schedule_task(const std::string &name, task_priority prio, _Func &&f, _Args &&...args)
         {
-            return schedule_task(make_task<_TaskType, _TaskContext>(name, prio, std::forward<_Func>(f)));
+            return self_type::schedule_task(make_task<_TaskType, _TaskContext>(name, prio, std::forward<_Func>(f), std::forward<_Args>(args)...));
         }
 
         //------------------------------------------------------------------------------------------
         // Type     : waitable
         // Context  : user defined
-        template<typename _TaskContext, typename _Func>
-        inline static task_handle schedule_task(const std::string &name, task_priority prio, _Func &&f)
+        template<typename _TaskContext, typename _Func, typename... _Args>
+        inline static task_handle schedule_task(const std::string &name, task_priority prio, _Func &&f, _Args &&...args)
         {
-            return schedule_task<task_type::waitable, _TaskContext>(name, prio, std::forward<_Func>(f));
+            return self_type::schedule_task<task_type::waitable, _TaskContext>(name, prio, std::forward<_Func>(f), std::forward<_Args>(args)...);
         }
 
         //------------------------------------------------------------------------------------------
         // Type     : waitable
         // Context  : default
-        template<typename _Func>
-        inline static task_handle schedule_task(const std::string &name, task_priority prio, _Func &&f)
+        template<typename _Func, typename... _Args>
+        inline static task_handle schedule_task(const std::string &name, task_priority prio, _Func &&f, _Args &&...args)
         {
-            return schedule_task<_DefaultTaskContext>(name, prio, std::forward<_Func>(f));
+            return self_type::schedule_task<_DefaultTaskContext>(name, prio, std::forward<_Func>(f), std::forward<_Args>(args)...);
         }
 
         //------------------------------------------------------------------------------------------
         // Type     : fire_and_forget
         // Context  : user defined
-        template<typename _TaskContext, typename _Func>
-        inline static void fire_and_forget_task(const std::string &name, task_priority prio, _Func &&f)
+        template<typename _TaskContext, typename _Func, typename... _Args>
+        inline static void fire_and_forget_task(const std::string &name, task_priority prio, _Func &&f, _Args &&...args)
         {
-            schedule_task<task_type::fire_and_forget, _TaskContext>(name, prio, std::forward<_Func>(f));
+            self_type::schedule_task<task_type::fire_and_forget, _TaskContext>(name, prio, std::forward<_Func>(f), std::forward<_Args>(args)...);
         }
 
         //------------------------------------------------------------------------------------------
         // Type     : fire_and_forget
         // Context  : default
-        template<typename _Func>
-        inline static void fire_and_forget_task(const std::string &name, task_priority prio, _Func &&f)
+        template<typename _Func, typename... _Args>
+        inline static void fire_and_forget_task(const std::string &name, task_priority prio, _Func &&f, _Args &&...args)
         {
-            fire_and_forget_task<_DefaultTaskContext>(name, prio, std::forward<_Func>(f));
+            self_type::fire_and_forget_task<_DefaultTaskContext>(name, prio, std::forward<_Func>(f), std::forward<_Args>(args)...);
         }
         //------------------------------------------------------------------------------------------
 
@@ -89,18 +89,11 @@ namespace oqpi {
         template<task_type _TaskType, typename _TaskContext, typename _Func, typename... _Args>
         inline static auto make_task(const std::string &name, task_priority priority, _Func &&func, _Args &&...args)
         {
-            using tuple_type = std::tuple<std::decay_t<_Func>, std::decay_t<_Args>...>;
-            using task_type = task<_TaskType, _TaskContext, tuple_type>;
-            return std::make_shared<task_type>
-            (
-                name,
-                priority,
-                tuple_type(std::forward<_Func>(func), std::forward<_Args>(args)...)
-            );
+            return oqpi::make_task<_TaskType, _TaskContext>(name, priority, std::forward<_Func>(func), std::forward<_Args>(args)...);
         }
         //------------------------------------------------------------------------------------------
         // Type     : user defined
-        // Context  : user defined
+        // Context  : default
         template<task_type _TaskType, typename _Func, typename... _Args>
         inline static auto make_task(const std::string &name, task_priority priority, _Func &&func, _Args &&...args)
         {
@@ -133,7 +126,7 @@ namespace oqpi {
         template<typename _TaskContext, typename _Func, typename... _Args>
         inline static auto make_task_item(const std::string &name, task_priority priority, _Func &&func, _Args &&...args)
         {
-            return make_task<task_type::fire_and_forget, _TaskContext, _Func>(name, priority, std::forward<_Func>(func), std::forward<_Args>(args)...);
+            return self_type::make_task<task_type::fire_and_forget, _TaskContext, _Func>(name, priority, std::forward<_Func>(func), std::forward<_Args>(args)...);
         }
 
         //------------------------------------------------------------------------------------------

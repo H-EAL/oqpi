@@ -2,20 +2,23 @@
 
 #include <tuple>
 #include "oqpi/scheduling/task_base.hpp"
+#include "oqpi/scheduling/task_result.hpp"
 #include "oqpi/scheduling/task_notifier.hpp"
 
 
 namespace oqpi {
 
-    template<task_type _TaskType, typename _TaskContext, typename _Tuple>
+    template<task_type _TaskType, typename _TaskContext, typename _Tuple, typename _ReturnType>
     class task final
         : public task_base
+        , public task_result<_ReturnType>
         , public notifier<_TaskType>
         , public _TaskContext
     {
         //------------------------------------------------------------------------------------------
-        using self_type     = task<_TaskType, _TaskContext, _Tuple>;
-        using notifier_type = notifier<_TaskType>;
+        using self_type         = task<_TaskType, _TaskContext, _Tuple, _ReturnType>;
+        using task_result_type  = task_result<_ReturnType>;
+        using notifier_type     = notifier<_TaskType>;
 
     public:
         //------------------------------------------------------------------------------------------
@@ -98,17 +101,34 @@ namespace oqpi {
             }
         }
 
+        //------------------------------------------------------------------------------------------
+        _ReturnType getResult() const
+        {
+            oqpi_checkf(task_base::isDone(), "Trying to get the result of an unfinished task (%s).", task_base::getName().c_str());
+            return task_result_type::getResult();
+        }
+
+        //------------------------------------------------------------------------------------------
+        _ReturnType waitForResult() const
+        {
+            wait();
+            return getResult();
+        }
+
     private:
         //------------------------------------------------------------------------------------------
-        void invoke()
+        inline void invoke()
         {
-            invokeTuple(std::make_integer_sequence<size_t, std::tuple_size<typename _Tuple>::value>());
+            task_result_type::run([this]
+            {
+                return invokeTuple(std::make_integer_sequence<size_t, std::tuple_size<typename _Tuple>::value>());
+            });
         }
         //------------------------------------------------------------------------------------------
         template<size_t... _Indices>
-        void invokeTuple(std::integer_sequence<size_t, _Indices...>)
+        inline auto invokeTuple(std::integer_sequence<size_t, _Indices...>)
         {
-            std::invoke(std::move(std::get<_Indices>(tuple_))...);
+            return std::invoke(std::move(std::get<_Indices>(tuple_))...);
         }
 
     private:
@@ -123,8 +143,9 @@ namespace oqpi {
     template<task_type _TaskType, typename _TaskContext, typename _Func, typename... _Args>
     inline auto make_task(const std::string &name, task_priority priority, _Func &&func, _Args &&...args)
     {
-        using tuple_type = std::tuple<std::decay_t<_Func>, std::decay_t<_Args>...>;
-        using task_type  = task<_TaskType, _TaskContext, tuple_type>;
+        using tuple_type    = std::tuple<std::decay_t<_Func>, std::decay_t<_Args>...>;
+        using return_type   = typename std::result_of<_Func(_Args...)>::type;
+        using task_type     = task<_TaskType, _TaskContext, tuple_type, return_type>;
         return std::make_shared<task_type>
         (
             name,

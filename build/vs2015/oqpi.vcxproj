@@ -40,6 +40,7 @@
     <ClInclude Include="..\..\include\oqpi\scheduling\task_group_base.hpp" />
     <ClInclude Include="..\..\include\oqpi\scheduling\task_handle.hpp" />
     <ClInclude Include="..\..\include\oqpi\scheduling\task_notifier.hpp" />
+    <ClInclude Include="..\..\include\oqpi\scheduling\task_result.hpp" />
     <ClInclude Include="..\..\include\oqpi\scheduling\task_scheduling.hpp" />
     <ClInclude Include="..\..\include\oqpi\scheduling\task_type.hpp" />
     <ClInclude Include="..\..\include\oqpi\scheduling\worker.hpp" />

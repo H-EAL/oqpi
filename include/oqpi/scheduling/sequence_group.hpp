@@ -1,7 +1,6 @@
 #pragma once
 
-#include <vector>
-#include <atomic>
+#include <queue>
 
 #include "oqpi/scheduling/task_group.hpp"
 
@@ -24,12 +23,9 @@ namespace oqpi {
     {
     public:
         //------------------------------------------------------------------------------------------
-        sequence_group(_Scheduler &sc, std::string name, task_priority priority, int32_t nbTasks = 0)
-            : task_group<_Scheduler, _TaskType, _GroupContext>(sc, std::move(name), priority)
-            , currentIndex_(0)
-        {
-            tasks_.reserve(nbTasks);
-        }
+        sequence_group(_Scheduler &sc, const std::string &name, task_priority priority)
+            : task_group<_Scheduler, _TaskType, _GroupContext>(sc, name, priority)
+        {}
 
     public:
         //------------------------------------------------------------------------------------------
@@ -44,41 +40,39 @@ namespace oqpi {
         {
             if (task_base::tryGrab())
             {
-                for (auto &hTask : tasks_)
+                while (!empty())
                 {
-                    if (oqpi_ensure(hTask.tryGrab()))
-                    {
-                        hTask.executeSingleThreaded();
-                    }
+                    auto hTask = popTask();
+                    hTask.executeSingleThreaded();
                 }
             }
         }
+
 
     protected:
         //------------------------------------------------------------------------------------------
         virtual void addTaskImpl(const task_handle &hTask) override final
         {
-            tasks_.emplace_back(hTask);
+            tasks_.push(hTask);
         }
 
         //------------------------------------------------------------------------------------------
         // Executes the current task
         virtual void executeImpl() override final
         {
-            oqpi_checkf(!empty(), "Invalid sequence");
-            auto &currentTask = tasks_[currentIndex_];
-            if (currentTask.tryGrab())
+            auto hTask = popTask();
+            if (hTask.tryGrab())
             {
-                currentTask.execute();
+                hTask.execute();
             }
         }
 
         //------------------------------------------------------------------------------------------
         virtual void oneTaskDone() override final
         {
-            if (++currentIndex_ < tasks_.size())
+            if (!empty())
             {
-                this->scheduler_.add(tasks_[currentIndex_]);
+                this->scheduler_.add(popTask());
             }
             else
             {
@@ -87,19 +81,30 @@ namespace oqpi {
         }
 
     private:
+        //------------------------------------------------------------------------------------------
+        task_handle popTask()
+        {
+            task_handle hTask;
+            if (oqpi_ensuref(!empty(), "Attempting to execute an empty sequence: %s", this->getUID()))
+            {
+                hTask = tasks_.front();
+                tasks_.pop();
+            }
+            return hTask;
+        }
+
+    private:
         // Tasks of the sequence
-        std::vector<task_handle>    tasks_;
-        // Index of the next task to execute
-        int32_t                     currentIndex_;
+        std::queue<task_handle> tasks_;
     };
     //----------------------------------------------------------------------------------------------
     
 
     //----------------------------------------------------------------------------------------------
-    template<typename _EventType, task_type _TaskType, typename _GroupContext, typename _Scheduler>
+    template<task_type _TaskType, typename _GroupContext, typename _Scheduler>
     inline auto make_sequence_group(_Scheduler &sc, const std::string &name, task_priority prio)
     {
-        return make_task_group<sequence_group, _EventType, _TaskType, _GroupContext>(sc, name, prio);
+        return make_task_group<sequence_group, _TaskType, _GroupContext>(sc, name, prio);
     }
     //----------------------------------------------------------------------------------------------
 

@@ -18,6 +18,7 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         // Static instance
         static _Scheduler scheduler_;
+        static _Scheduler& scheduler() { return scheduler_; }
 
 
         //------------------------------------------------------------------------------------------
@@ -145,7 +146,7 @@ namespace oqpi {
         // Type     : user defined
         // Context  : user defined
         template<task_type _TaskType, typename _GroupContext>
-        inline static auto make_parallel_group(const std::string &name, task_priority prio, int32_t taskCount = 0, int32_t maxSimultaneousTasks = 0)
+        inline static auto make_parallel_group(const std::string &name, task_priority prio = task_priority::normal, int32_t taskCount = 0, int32_t maxSimultaneousTasks = 0)
         {
             return oqpi::make_parallel_group<_TaskType, _GroupContext>(scheduler_, name, prio, taskCount, maxSimultaneousTasks);
         }
@@ -154,7 +155,7 @@ namespace oqpi {
         // Type     : user defined
         // Context  : default
         template<task_type _TaskType>
-        inline static auto make_parallel_group(const std::string &name, task_priority prio, int32_t taskCount = 0, int32_t maxSimultaneousTasks = 0)
+        inline static auto make_parallel_group(const std::string &name, task_priority prio = task_priority::normal, int32_t taskCount = 0, int32_t maxSimultaneousTasks = 0)
         {
             return self_type::make_parallel_group<_TaskType, _DefaultGroupContext>(name, prio, taskCount, maxSimultaneousTasks);
         }
@@ -166,18 +167,18 @@ namespace oqpi {
         // Type     : user defined
         // Context  : user defined
         template<task_type _TaskType, typename _GroupContext>
-        inline static auto make_sequence_group(const std::string &name, task_priority prio, int32_t taskCount = 0)
+        inline static auto make_sequence_group(const std::string &name, task_priority prio = task_priority::normal)
         {
-            return make_sequence_group<_TaskType, _GroupContext>(scheduler_, name, prio, taskCount);
+            return oqpi::make_sequence_group<_TaskType, _GroupContext>(scheduler_, name, prio);
         }
 
         //------------------------------------------------------------------------------------------
         // Type     : user defined
         // Context  : default
         template<task_type _TaskType>
-        inline static auto make_sequence_group(const std::string &name, task_priority prio, int32_t taskCount = 0)
+        inline static auto make_sequence_group(const std::string &name, task_priority prio = task_priority::normal)
         {
-            return self_type::make_sequence_group<_TaskType, _DefaultGroupContext>(name, prio, taskCount);
+            return self_type::make_sequence_group<_TaskType, _DefaultGroupContext>(name, prio);
         }
     };
 

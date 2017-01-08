@@ -27,13 +27,13 @@ namespace oqpi {
     {
     public:
         //------------------------------------------------------------------------------------------
-        parallel_group(_Scheduler &sc, std::string name, task_priority priority, int32_t nbTasks = 0, int32_t maxSimultaneousTasks = 0)
-            : task_group<_Scheduler, _TaskType, _GroupContext>(sc, std::move(name), priority)
+        parallel_group(_Scheduler &sc, const std::string &name, task_priority priority, int32_t taskCount = 0, int32_t maxSimultaneousTasks = 0)
+            : task_group<_Scheduler, _TaskType, _GroupContext>(sc, name, priority)
             , activeTasksCount_(0)
             , maxSimultaneousTasks_(maxSimultaneousTasks)
             , currentTaskIndex_(1)
         {
-            tasks_.reserve(nbTasks);
+            tasks_.reserve(taskCount);
         }
 
     public:

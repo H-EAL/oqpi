@@ -16,7 +16,7 @@ namespace oqpi {
             : worker_base(id, config)
             , _WorkerContext(this)
             , scheduler_(sc)
-            , notifier_("WorkerNotifier/" + config.threadAttributes.name_ + std::to_string(id))
+            , notifier_("WorkerNotifier/" + this->getName())
             , running_(false)
         {}
 
@@ -35,7 +35,10 @@ namespace oqpi {
             // Add the id to the worker name so we can differentiate them when several workers
             // share the same config (and thus the same name)
             auto threadAttributes = worker_base::config_.threadAttributes;
-            threadAttributes.name_ += std::to_string(id_);
+            if (id_ >= 0)
+            {
+                threadAttributes.name_ += std::to_string(id_);
+            }
 
             // Start the thread, running_ must be set to true beforehand
             thread_ = _Thread(threadAttributes, [this]() { run(); });

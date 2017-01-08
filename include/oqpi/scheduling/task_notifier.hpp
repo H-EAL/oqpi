@@ -23,7 +23,7 @@ namespace oqpi {
     {
     protected:
         //------------------------------------------------------------------------------------------
-        notifier(const std::string &) {};
+        notifier(task_uid) {};
 
         //------------------------------------------------------------------------------------------
         void wait() const { oqpi_checkf(false, "Can't wait on a fire_and_forget task"); }
@@ -42,8 +42,8 @@ namespace oqpi {
 
     protected:
         //------------------------------------------------------------------------------------------
-        notifier(const std::string &taskName)
-            : event_("Notifier/" + taskName)
+        notifier(task_uid uid)
+            : event_("Notifier/" + std::to_string(uid))
         {}
 
         //------------------------------------------------------------------------------------------

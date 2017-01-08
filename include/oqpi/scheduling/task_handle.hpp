@@ -80,7 +80,7 @@ namespace oqpi {
         void execute()
         {
             validate();
-            oqpi_checkf(spTask_->isGrabbed(), "Trying to execute an ungrabbed task: %s", getName().c_str());
+            oqpi_checkf(spTask_->isGrabbed(), "Trying to execute an ungrabbed task: %d", getUID());
             spTask_->execute();
         }
 
@@ -148,10 +148,10 @@ namespace oqpi {
         }
 
         //------------------------------------------------------------------------------------------
-        const std::string& getName() const
+        uint64_t getUID() const
         {
             validate();
-            return spTask_->getName();
+            return spTask_->getUID();
         }
 
     private:

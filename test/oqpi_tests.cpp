@@ -7,82 +7,205 @@
 #include "cqueue.hpp"
 #include "timer_contexts.hpp"
 
-using thread = oqpi::thread_interface;
-using semaphore = oqpi::semaphore_interface;
-
-template<typename T>
-using cqueue = qqueue<T, std::mutex>;
-
 using namespace std::chrono_literals;
 
-using scheduler_type = oqpi::scheduler<cqueue>;
+//--------------------------------------------------------------------------------------------------
+// Types
+using thread            = oqpi::thread_interface;
+using semaphore         = oqpi::semaphore_interface;
+template<typename T>
+using cqueue            = qqueue<T, std::mutex>;
+using scheduler_type    = oqpi::scheduler<cqueue>;
+using gc                = oqpi::group_context_container<timer_group_context>;
+using tc                = oqpi::task_context_container<timer_task_context>;
+using oqpi_tk           = oqpi::helpers<scheduler_type, gc, tc>;
 
-using tc = oqpi::task_context_container<timer_task_context>;
-using gc = oqpi::group_context_container<timer_group_context>;
 
-using oqpi_tk = oqpi::helpers<scheduler_type, gc, tc>;
-
-
-static std::mutex coutMutex;
-void SleepFor(int)
+//--------------------------------------------------------------------------------------------------
+void setup_environment()
 {
-    thread_local volatile int a = 1000;
-    int b = a;
-    while (b--);
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    std::cout << __FUNCTION__ << std::endl;
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    const auto workerCount = thread::hardware_concurrency();
+    for (auto i = 0u; i < workerCount; ++i)
+    {
+        auto config = oqpi::worker_config{};
+        config.threadAttributes.coreAffinityMask_   = oqpi::core_affinity(1 << i);
+        config.threadAttributes.name_               = "oqpi::worker_" + std::to_string(i);
+        config.threadAttributes.priority_           = oqpi::thread_priority::highest;
+        config.workerPrio                           = oqpi::worker_priority::wprio_any;
+        config.count                                = 1;
+        oqpi_tk::scheduler().registerWorker<thread, semaphore>(config);
+    }
+
+    oqpi_tk::scheduler().start();
+    std::cout << std::endl << std::endl;
 }
 
+
+//--------------------------------------------------------------------------------------------------
+static constexpr auto gValue = 10000000ull;
+static constexpr auto gTaskCount = 4;
+
+//--------------------------------------------------------------------------------------------------
+uint64_t fibonacci(uint64_t n)
+{
+    uint64_t a = 1, b = 1;
+    for (uint64_t i = 3; i <= n; ++i)
+    {
+        uint64_t c = a + b;
+        a = b;
+        b = c;
+    }
+    return b;
+}
+
+//--------------------------------------------------------------------------------------------------
+void test_unit_task_result()
+{
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    std::cout << __FUNCTION__ << std::endl;
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    auto spTask = oqpi_tk::make_task("FibonacciReturnResult", oqpi::task_priority::normal, fibonacci, gValue);
+    oqpi_tk::schedule_task(spTask);
+    std::cout << "Fibonacci(" << gValue << ") = " << spTask->waitForResult() << std::endl;
+    timing_registry::get().dump();
+    timing_registry::get().reset();
+
+    std::cout << std::endl << std::endl;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+void test_unit_task()
+{
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    std::cout << __FUNCTION__ << std::endl;
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    auto spTask = oqpi_tk::make_task("Fibonacci4x", oqpi::task_priority::normal, []
+    {
+        for (int i = 0; i < gTaskCount; ++i)
+        {
+            volatile auto a = 0ull;
+            a += fibonacci(gValue);
+        }
+    });
+    oqpi_tk::schedule_task(spTask).wait();
+    timing_registry::get().dump();
+    timing_registry::get().reset();
+
+    std::cout << std::endl << std::endl;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+void test_multiple_unit_tasks()
+{
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    std::cout << __FUNCTION__ << std::endl;
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    for (auto i = 0; i < gTaskCount; ++i)
+    {
+        auto spTask = oqpi_tk::make_task("Fibonacci4xWait", oqpi::task_priority::normal, fibonacci, gValue);
+        oqpi_tk::schedule_task(spTask).wait();
+    }
+    timing_registry::get().dump();
+    timing_registry::get().reset();
+
+    std::cout << std::endl << std::endl;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+void test_sequence_group()
+{
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    std::cout << __FUNCTION__ << std::endl;
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    auto spSeq = oqpi_tk::make_sequence_group<oqpi::task_type::waitable>("Sequence");
+    for (auto i = 0; i < gTaskCount; ++i)
+    {
+        auto spTask = oqpi_tk::make_task_item("FibonacciSeq" + std::to_string(i), oqpi::task_priority::normal, fibonacci, gValue);
+        spSeq->addTask(spTask);
+    }
+    oqpi_tk::schedule_task(oqpi::task_handle(spSeq)).wait();
+    timing_registry::get().dump();
+    timing_registry::get().reset();
+
+    std::cout << std::endl << std::endl;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+void test_parallel_group()
+{
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    std::cout << __FUNCTION__ << std::endl;
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    auto spFork = oqpi_tk::make_parallel_group<oqpi::task_type::waitable>("Fork", oqpi::task_priority::normal, gTaskCount);
+    for (auto i = 0; i < gTaskCount; ++i)
+    {
+        auto spTask = oqpi_tk::make_task_item("FibonacciFork" + std::to_string(i), oqpi::task_priority::normal, fibonacci, gValue);
+        spFork->addTask(spTask);
+    }
+    oqpi_tk::schedule_task(oqpi::task_handle(spFork)).wait();
+    timing_registry::get().dump();
+    timing_registry::get().reset();
+
+    std::cout << std::endl << std::endl;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+void test_sequence_of_parallel_groups()
+{
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    std::cout << __FUNCTION__ << std::endl;
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    auto spSeq = oqpi_tk::make_sequence_group<oqpi::task_type::waitable>("Sequence");
+    for (auto i = 0; i < gTaskCount; ++i)
+    {
+        auto spFork = oqpi_tk::make_parallel_group<oqpi::task_type::fire_and_forget>("Fork" + std::to_string(i), oqpi::task_priority::normal, gTaskCount);
+        for (auto j = 0; j < gTaskCount; ++j)
+        {
+            auto spTask = oqpi_tk::make_task_item("Fibonacci_" + std::to_string(i*10+j), oqpi::task_priority::normal, fibonacci, gValue);
+            spFork->addTask(spTask);
+        }
+        spSeq->addTask(oqpi::task_handle(spFork));
+    }
+    oqpi_tk::schedule_task(oqpi::task_handle(spSeq)).wait();
+    timing_registry::get().dump();
+    timing_registry::get().reset();
+
+    std::cout << std::endl << std::endl;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+void clean_up_environement()
+{
+    oqpi::this_thread::sleep_for(500ms);
+    oqpi_tk::scheduler().stop();
+}
+
+
+//--------------------------------------------------------------------------------------------------
 int main()
 {
-    const int STACK_SIZE = 0;
-
-    const oqpi::worker_config workersConfig[] =
-    {
-    { oqpi::thread_attributes("WT(0) - ", STACK_SIZE, oqpi::core_affinity::core0, oqpi::thread_priority::highest), oqpi::worker_priority::wprio_any, 1},
-    { oqpi::thread_attributes("WT(1) - ", STACK_SIZE, oqpi::core_affinity::core1, oqpi::thread_priority::highest), oqpi::worker_priority::wprio_any, 1},
-    { oqpi::thread_attributes("WT(2) - ", STACK_SIZE, oqpi::core_affinity::core2, oqpi::thread_priority::highest), oqpi::worker_priority::wprio_any, 1},
-    { oqpi::thread_attributes("WT(3) - ", STACK_SIZE, oqpi::core_affinity::core3, oqpi::thread_priority::highest), oqpi::worker_priority::wprio_any, 1},
-    };
-    
-    oqpi_tk::scheduler_.registerWorkers<thread, semaphore>(workersConfig);
-    oqpi_tk::scheduler_.start();
-
-
-    auto t1 = oqpi::make_task<tc>("MyWaitableTask", oqpi::task_priority::high, [](int a, int b)
-    {
-        int somme = a + b;
-        return somme;
-    }, 20, 35);
-
-    oqpi_tk::schedule_task(t1);
-
-    auto t2 = oqpi::make_task<tc>("MyFireAndForgetTask", oqpi::task_priority::high,
-        [](int somme)
-        {
-            return std::string("haha somme = " + std::to_string(somme));
-        }
-        , t1->waitForResult()
-    );
-
-    oqpi_tk::schedule_task(t2);
-    t2->waitForResult();
-
-    auto tg = oqpi_tk::make_parallel_group<oqpi::task_type::waitable>("MyFork", oqpi::task_priority::normal, 5);
-    int32_t t = 0;
-    tg->addTask(oqpi_tk::make_task_item("MyFT1", oqpi::task_priority::normal, SleepFor, t += 10));
-    tg->addTask(oqpi_tk::make_task_item("MyFT2", oqpi::task_priority::normal, SleepFor, t += 10));
-    tg->addTask(oqpi_tk::make_task_item("MyFT3", oqpi::task_priority::normal, SleepFor, t += 10));
-    tg->addTask(oqpi_tk::make_task_item("MyFT4", oqpi::task_priority::normal, SleepFor, t += 10));
-
-    oqpi_tk::schedule_task(oqpi::task_handle(tg));
-
-
-    //const auto part = oqpi::simple_partitioner(40, 4);
-    //oqpi::parallel_for<gc, tc>(oqpi_tk::scheduler_, "ParallelFor", part, oqpi::task_priority::normal, SleepFor);
-
-    tg->wait();
-    oqpi::this_thread::sleep_for(50ms);
-
-    oqpi_tk::scheduler_.stop();
-
-    return 0;
+    setup_environment();
+    oqpi::this_thread::sleep_for(5ms);
+    test_unit_task_result();
+    oqpi::this_thread::sleep_for(5ms);
+    test_unit_task();
+    oqpi::this_thread::sleep_for(5ms);
+    test_multiple_unit_tasks();
+    oqpi::this_thread::sleep_for(5ms);
+    test_sequence_group();
+    oqpi::this_thread::sleep_for(5ms);
+    test_parallel_group();
+    oqpi::this_thread::sleep_for(5ms);
+    test_sequence_of_parallel_groups();
+    oqpi::this_thread::sleep_for(5ms);
+    clean_up_environement();
 }

@@ -28,10 +28,10 @@ namespace oqpi {
     public:
         //------------------------------------------------------------------------------------------
         // Constructor
-        task_base(std::string name, task_priority priority)
-            : name_(std::move(name))
-            , priority_(priority)
+        task_base(task_priority priority)
+            : uid_(uid_provider())
             , spParentGroup_(nullptr)
+            , priority_(priority)
             , grabbed_(false)
             , done_(false)
         {}
@@ -43,9 +43,9 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         // Can be moved
         task_base(task_base &&other)
-            : name_(std::move(other.name_))
-            , priority_(other.priority_)
+            : uid_(other.uid_)
             , spParentGroup_(std::move(other.spParentGroup_))
+            , priority_(other.priority_)
             , grabbed_(other.grabbed_.load())
             , done_(other.done_.load())
         {}
@@ -55,11 +55,13 @@ namespace oqpi {
         {
             if (this != &rhs)
             {
-                name_           = std::move(rhs.name_);
-                priority_       = rhs.priority_;
+                uid_            = rhs.uid_;
                 spParentGroup_  = std::move(rhs.spParentGroup_);
+                priority_       = rhs.priority_;
                 grabbed_        = rhs.grabbed_.load();
                 done_           = rhs.done_.load();
+
+                rhs.uid_        = invalid_task_uid;
             }
             return (*this);
         }
@@ -80,56 +82,71 @@ namespace oqpi {
     public:
         //------------------------------------------------------------------------------------------
         // Accessors
-        task_priority getPriority() const
+        inline task_uid getUID() const
         {
-            return priority_;
+            return uid_;
         }
 
-        void setParentGroup(const task_group_sptr &spParentGroup)
+        inline void setParentGroup(const task_group_sptr &spParentGroup)
         {
             spParentGroup_ = spParentGroup;
         }
 
-        const task_group_sptr& getParentGroup() const
+        inline const task_group_sptr& getParentGroup() const
         {
             return spParentGroup_;
         }
 
-        bool tryGrab()
+        inline task_priority getPriority() const
+        {
+            return priority_;
+        }
+
+        inline bool tryGrab()
         {
             bool expected = false;
             return grabbed_.compare_exchange_strong(expected, true);
         }
 
-        bool isGrabbed() const
+        inline bool isGrabbed() const
         {
             return grabbed_.load();
         }
 
-        bool isDone() const
+        inline bool isDone() const
         {
             return done_.load();
         }
 
-        void setDone();
-
-        const std::string& getName() const
+        inline void setDone()
         {
-            return name_;
+            done_.store(true);
         }
+
+        inline void notifyParent();
 
     protected:
         //------------------------------------------------------------------------------------------
-        // The name of the task used in various debug tools
-        std::string         name_;
-        // Relative priority of the task
-        task_priority       priority_;
+        // The unique id of this task
+        task_uid            uid_;
         // Optional parent group
         task_group_sptr     spParentGroup_;
+        // Relative priority of the task
+        task_priority       priority_;
         // Token that has to be acquired by anyone before executing the task
         std::atomic<bool>   grabbed_;
         // Flag flipped once the task execution is done
         std::atomic<bool>   done_;
+
+    private:
+        //------------------------------------------------------------------------------------------
+        // Id provider
+        static inline task_uid uid_provider()
+        {
+            // Starts at 1 as 0 is the invalid value
+            static std::atomic<task_uid> uid_generator(1);
+            return uid_generator.fetch_add(1);
+        }
     };
 
 } /*oqpi*/

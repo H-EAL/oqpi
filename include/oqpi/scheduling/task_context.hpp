@@ -14,7 +14,7 @@ namespace oqpi {
     class task_context_base
     {
     public:
-        task_context_base(task_base *pOwner)
+        task_context_base(task_base *pOwner, const std::string &)
             : pOwner_(pOwner)
         {}
 

@@ -22,8 +22,8 @@ namespace oqpi {
         , public std::enable_shared_from_this<task_group_base>
     {
     public:
-        task_group_base(std::string name, task_priority priority)
-            : task_base(std::move(name), priority)
+        task_group_base(task_priority priority)
+            : task_base(priority)
         {}
 
         virtual ~task_group_base()
@@ -44,10 +44,8 @@ namespace oqpi {
     //----------------------------------------------------------------------------------------------
     // Declared here as a workaround to the circular dependency between task_base and
     // task_group_base.
-    inline void task_base::setDone()
+    inline void task_base::notifyParent()
     {
-        done_.store(true);
-
         if (spParentGroup_)
         {
             spParentGroup_->oneTaskDone();

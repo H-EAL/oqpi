@@ -22,10 +22,10 @@ namespace oqpi {
 
     public:
         //------------------------------------------------------------------------------------------
-        task(std::string name, task_priority priority, _Tuple tuple)
-            : task_base(std::move(name), priority)
-            , notifier_type(name_)
-            , _TaskContext(this)
+        task(const std::string &name, task_priority priority, _Tuple tuple)
+            : task_base(priority)
+            , notifier_type(task_base::getUID())
+            , _TaskContext(this, name)
             , tuple_(std::move(tuple))
         {}
 
@@ -60,12 +60,11 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         virtual void execute() override final
         {
-            _TaskContext::task_onPreExecute();
-            invoke();
-            _TaskContext::task_onPostExecute();
-
-            task_base::setDone();
-            notifier_type::notify();
+            if (oqpi_ensuref(task_base::isGrabbed(), "Trying to execute an ungrabbed task: %d", task_base::getUID()))
+            {
+                invoke();
+                task_base::notifyParent();
+            }
         }
 
         //------------------------------------------------------------------------------------------
@@ -73,12 +72,9 @@ namespace oqpi {
         {
             if (task_base::tryGrab())
             {
-                _TaskContext::task_onPreExecute();
                 invoke();
-                _TaskContext::task_onPostExecute();
-
-                done_.store(true);
-                notifier_type::notify();
+                // We are single threaded meaning that our parent (if any) is running this task
+                // in its executeSingleThreaded function, so no need to notify it.
             }
         }
 
@@ -104,25 +100,33 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         _ReturnType getResult() const
         {
-            oqpi_checkf(task_base::isDone(), "Trying to get the result of an unfinished task (%s).", task_base::getName().c_str());
+            oqpi_checkf(task_base::isDone(), "Trying to get the result of an unfinished task: %d", task_base::getUID());
             return task_result_type::getResult();
         }
 
         //------------------------------------------------------------------------------------------
         _ReturnType waitForResult() const
         {
-            wait();
-            return getResult();
+            return wait(), getResult();
         }
 
     private:
         //------------------------------------------------------------------------------------------
         inline void invoke()
         {
+            // Run the preExecute code of the context
+            _TaskContext::task_onPreExecute();
+            // Run the task itself
             task_result_type::run([this]
             {
                 return invokeTuple(std::make_integer_sequence<size_t, std::tuple_size<typename _Tuple>::value>());
             });
+            // Flag the task as done
+            task_base::setDone();
+            // Run the postExecute code of the context
+            _TaskContext::task_onPostExecute();
+            // Signal that the task is done
+            notifier_type::notify();
         }
         //------------------------------------------------------------------------------------------
         template<size_t... _Indices>
@@ -154,24 +158,5 @@ namespace oqpi {
         );
     }
     //----------------------------------------------------------------------------------------------
-
-
-    //----------------------------------------------------------------------------------------------
-    // Type     : waitable
-    // Context  : user defined
-    template<typename _TaskContext, typename _Func, typename... _Args>
-    inline auto make_task(const std::string &name, task_priority priority, _Func &&func, _Args &&...args)
-    {
-        return make_task<task_type::waitable, _TaskContext>(name, priority, std::forward<_Func>(func), std::forward<_Args>(args)...);
-    }
-
-    //----------------------------------------------------------------------------------------------
-    // Type     : fire_and_forget
-    // Context  : user defined
-    template<typename _TaskContext, typename _Func, typename... _Args>
-    inline auto make_task_item(const std::string &name, task_priority priority, _Func &&func, _Args &&...args)
-    {
-        return make_task<task_type::fire_and_forget, _TaskContext>(name, priority, std::forward<_Func>(func), std::forward<_Args>(args)...);
-    }
 
 } /*oqpi*/

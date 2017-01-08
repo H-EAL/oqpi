@@ -43,6 +43,12 @@ namespace oqpi {
     // A config used to create one or several workers when registering to the scheduler
     struct worker_config
     {
+        worker_config()
+            : threadAttributes("oqpi::worker")
+            , workerPrio(worker_priority::wprio_any)
+            , count(1)
+        {}
+
         thread_attributes   threadAttributes;
         worker_priority     workerPrio;
         int32_t             count;
@@ -67,7 +73,7 @@ namespace oqpi {
     public:
         //------------------------------------------------------------------------------------------
         worker_base(int id, const worker_config &config)
-            : id_(id)
+            : id_(config.count > 1 ? id : -1)
             , config_(config)
         {}
 
@@ -85,8 +91,8 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         void assign(task_handle &&hTask)
         {
-            oqpi_checkf(isAvailable(), "Trying to assign a new task (%s) to a busy worker: %s (%s)",
-                hTask.getName().c_str(), config_.threadAttributes.name_.c_str(), hTask_.getName().c_str());
+            oqpi_checkf(isAvailable(), "Trying to assign a new task (%d) to a busy worker: %s (%d)",
+                hTask.getUID(), config_.threadAttributes.name_.c_str(), hTask_.getUID());
 
             hTask_ = std::move(hTask);
         }
@@ -118,7 +124,9 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         std::string getName() const
         {
-            return config_.threadAttributes.name_ + std::to_string(id_);
+            return id_ >= 0
+                ? config_.threadAttributes.name_ + std::to_string(id_)
+                : config_.threadAttributes.name_;
         }
 
     public:

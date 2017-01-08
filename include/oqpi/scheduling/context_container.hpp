@@ -27,8 +27,9 @@ namespace oqpi {
         using self_type = context_container<_OwnerType, _ContextList...>;
 
     public:
-        context_container(_OwnerType *pOwner)
-            : _ContextList(pOwner)...
+        template<typename... _Args>
+        context_container(_OwnerType *pOwner, _Args &&...args)
+            : _ContextList(pOwner, std::forward<_Args>(args)...)...
         {}
 
         //------------------------------------------------------------------------------------------

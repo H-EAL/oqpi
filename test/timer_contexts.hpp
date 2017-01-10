@@ -4,11 +4,25 @@
 #include <unordered_map>
 #include "oqpi.hpp"
 
-int64_t query_performance_counter()
+
+int64_t query_performance_counter_aux()
 {
     LARGE_INTEGER li;
     QueryPerformanceCounter(&li);
     return li.QuadPart;
+}
+
+int64_t first_measure()
+{
+    static const auto firstMeasure = query_performance_counter_aux();
+    return firstMeasure;
+}
+
+int64_t query_performance_counter()
+{
+    first_measure();
+    const auto t = query_performance_counter_aux();
+    return t - first_measure();
 }
 
 int64_t query_performance_frequency()
@@ -38,7 +52,7 @@ private:
         double duration_ = 0;
         int32_t startedOnCore_ = -1;
         int32_t stoppedOnCore_ = -1;
-        std::vector<uint64_t> children;
+        std::vector<oqpi::task_handle> children;
         bool isGroup = false;
         oqpi::task_uid parentUID = oqpi::invalid_task_uid;
 
@@ -63,19 +77,19 @@ public:
         return instance;
     }
 
-    void registerTask(uint64_t uid, const std::string &name, bool isGroup = false)
+    void registerTask(uint64_t uid, const std::string &name)
     {
         auto t = query_performance_counter();
         std::lock_guard<std::mutex> __l(m);
         auto &h = tasks[uid];
         h.name = name;
         h.createdAt = t;
-        h.isGroup = isGroup;
     }
 
-    void registerGroup(uint64_t uid, const std::string &name)
+    void unregisterTask(uint64_t uid)
     {
-        registerTask(uid, name, true);
+        std::lock_guard<std::mutex> __l(m);
+        tasks.erase(uid);
     }
 
     void startTask(uint64_t uid)
@@ -99,43 +113,39 @@ public:
         it->second.stoppedOnCore_ = oqpi::this_thread::get_current_core();
     }
 
-    void addToGroup(uint64_t guid, uint64_t tuid)
+    void addToGroup(uint64_t guid, oqpi::task_handle hTask)
     {
         std::lock_guard<std::mutex> __l(m);
+        // Flag the task as having a parent
+        auto tit = tasks.find(hTask.getUID());
+        tit->second.parentUID = guid;
         // Add this task to the parent
         auto git = tasks.find(guid);
-        git->second.children.push_back(tuid);
-        // Flag the task as having a parent
-        auto tit = tasks.find(tuid);
-        tit->second.parentUID = guid;
-    }
-
-    void startGroup(uint64_t uid)
-    {
-        startTask(uid);
-        tasks[uid].isGroup = true;
-    }
-
-    void endGroup(uint64_t uid)
-    {
-        endTask(uid);
+        git->second.children.emplace_back(std::move(hTask));
+        git->second.isGroup = true;
     }
 
     void dump()
     {
-        std::vector<task_info> infos;
-        for (auto &p : tasks)
+        std::vector<oqpi::task_handle> childrenToDelete;
         {
-            if (p.second.parentUID == oqpi::invalid_task_uid)
-                infos.push_back(p.second);
+            std::lock_guard<std::mutex> __l(m);
+            std::vector<task_info*> infos;
+            for (auto &p : tasks)
+            {
+                if (p.second.parentUID == oqpi::invalid_task_uid)
+                    infos.push_back(&p.second);
+            }
+            print(infos, 0, childrenToDelete);
         }
-        print(infos, 0);
+        childrenToDelete.clear();
     }
 
-    void print(const std::vector<task_info> &infos, int depth)
+    void print(std::vector<task_info*> &infos, int depth, std::vector<oqpi::task_handle> &childrenToDelete)
     {
-        for (const auto &ti : infos)
+        for (auto pti : infos)
         {
+            auto &ti = (*pti);
             auto d = depth;
             while (d--) std::cout << "    ";
 
@@ -144,7 +154,8 @@ public:
             if (!ti.children.empty())
             {   
                 double totalDuration = 0.0;
-                print(collectChildren(ti.children, totalDuration), depth + 1);
+                auto children = collectChildren(ti.children, totalDuration);
+                print(children, depth + 1, childrenToDelete);
 
                 d = depth;
                 while (d--) std::cout << "    ";
@@ -155,23 +166,41 @@ public:
                     << ti.duration_
                     << "ms (total accumulated time of tasks = "
                     << totalDuration
-                    << "ms, that is "
-                    << ti.duration_ * 100.0 / totalDuration
-                    << "% of group duration)"
-                    << std::endl;
+                    << "ms, ";
+                    if (totalDuration < ti.duration_)
+                    {
+                        std::cout
+                            << "that is an overhead of "
+                            << ti.duration_ - totalDuration
+                            << "ms for group management)";
+                    }
+                    else
+                    {
+                        std::cout
+                            << "the group represent "
+                            << ti.duration_ * 100.0 / totalDuration
+                            << "% of the total duration)";
+                    }
+                    std::cout << std::endl;
             }
 
+            for (auto &i : ti.children)
+            {
+                childrenToDelete.emplace_back(std::move(i));
+            }
+            //ti.children.clear();
         }
     }
 
-    std::vector<task_info> collectChildren(const std::vector<uint64_t> &children, double &totalDuration)
+    std::vector<task_info*> collectChildren(const std::vector<oqpi::task_handle> &children, double &totalDuration)
     {
-        std::vector<task_info> infos;
+        std::vector<task_info*> infos;
+        infos.reserve(children.size());
         totalDuration = 0;
         for (auto &c : children)
         {
-            infos.push_back(tasks.find(c)->second);
-            totalDuration += infos.back().duration_;
+            infos.push_back(&tasks.find(c.getUID())->second);
+            totalDuration += infos.back()->duration_;
         }
         return std::move(infos);
     }
@@ -194,6 +223,11 @@ public:
         : oqpi::task_context_base(pOwner, name)
     {
         timing_registry::get().registerTask(pOwner->getUID(), name);
+    }
+
+    ~timer_task_context()
+    {
+        timing_registry::get().unregisterTask(this->owner()->getUID());
     }
 
     inline void onPreExecute()
@@ -220,19 +254,24 @@ public:
         timing_registry::get().registerTask(pOwner->getUID(), name);
     }
 
+    ~timer_group_context()
+    {
+        timing_registry::get().unregisterTask(this->owner()->getUID());
+    }
+
     inline void onTaskAdded(const oqpi::task_handle &hTask)
     {
-        timing_registry::get().addToGroup(this->owner()->getUID(), hTask.getUID());
+        timing_registry::get().addToGroup(this->owner()->getUID(), hTask);
     }
 
     inline void onPreExecute()
     {
-        timing_registry::get().startGroup(this->owner()->getUID());
+        timing_registry::get().startTask(this->owner()->getUID());
     }
 
     inline void onPostExecute()
     {
-        timing_registry::get().endGroup(this->owner()->getUID());
+        timing_registry::get().endTask(this->owner()->getUID());
     }
 };
 

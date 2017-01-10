@@ -24,9 +24,9 @@ using oqpi_tk           = oqpi::helpers<scheduler_type, gc, tc>;
 //--------------------------------------------------------------------------------------------------
 void setup_environment()
 {
-    std::cout << "-------------------------------------------------------------------" << std::endl;
-    std::cout << __FUNCTION__ << std::endl;
-    std::cout << "-------------------------------------------------------------------" << std::endl;
+//     std::cout << "-------------------------------------------------------------------" << std::endl;
+//     std::cout << __FUNCTION__ << std::endl;
+//     std::cout << "-------------------------------------------------------------------" << std::endl;
     const auto workerCount = thread::hardware_concurrency();
     for (auto i = 0u; i < workerCount; ++i)
     {
@@ -40,7 +40,7 @@ void setup_environment()
     }
 
     oqpi_tk::scheduler().start();
-    std::cout << std::endl << std::endl;
+//    std::cout << std::endl << std::endl;
 }
 
 
@@ -71,8 +71,8 @@ void test_unit_task_result()
     oqpi_tk::schedule_task(spTask);
     std::cout << "Fibonacci(" << gValue << ") = " << spTask->waitForResult() << std::endl;
     timing_registry::get().dump();
-    timing_registry::get().reset();
 
+    std::cout << "-------------------------------------------------------------------" << std::endl;
     std::cout << std::endl << std::endl;
 }
 
@@ -88,13 +88,13 @@ void test_unit_task()
         for (int i = 0; i < gTaskCount; ++i)
         {
             volatile auto a = 0ull;
-            a += fibonacci(gValue);
+            a += fibonacci(gValue+a);
         }
     });
     oqpi_tk::schedule_task(spTask).wait();
     timing_registry::get().dump();
-    timing_registry::get().reset();
 
+    std::cout << "-------------------------------------------------------------------" << std::endl;
     std::cout << std::endl << std::endl;
 }
 
@@ -105,14 +105,19 @@ void test_multiple_unit_tasks()
     std::cout << "-------------------------------------------------------------------" << std::endl;
     std::cout << __FUNCTION__ << std::endl;
     std::cout << "-------------------------------------------------------------------" << std::endl;
+    oqpi::task_handle handles[gTaskCount];
     for (auto i = 0; i < gTaskCount; ++i)
     {
-        auto spTask = oqpi_tk::make_task("Fibonacci4xWait", oqpi::task_priority::normal, fibonacci, gValue);
-        oqpi_tk::schedule_task(spTask).wait();
+        handles[i] = oqpi_tk::make_task("Fibonacci4xWait", oqpi::task_priority::normal, fibonacci, gValue);
+        oqpi_tk::schedule_task(handles[i]);
+    }
+    for (auto i = 0; i < gTaskCount; ++i)
+    {
+        handles[i].wait();
     }
     timing_registry::get().dump();
-    timing_registry::get().reset();
 
+    std::cout << "-------------------------------------------------------------------" << std::endl;
     std::cout << std::endl << std::endl;
 }
 
@@ -131,8 +136,8 @@ void test_sequence_group()
     }
     oqpi_tk::schedule_task(oqpi::task_handle(spSeq)).wait();
     timing_registry::get().dump();
-    timing_registry::get().reset();
 
+    std::cout << "-------------------------------------------------------------------" << std::endl;
     std::cout << std::endl << std::endl;
 }
 
@@ -151,8 +156,8 @@ void test_parallel_group()
     }
     oqpi_tk::schedule_task(oqpi::task_handle(spFork)).wait();
     timing_registry::get().dump();
-    timing_registry::get().reset();
 
+    std::cout << "-------------------------------------------------------------------" << std::endl;
     std::cout << std::endl << std::endl;
 }
 
@@ -176,8 +181,29 @@ void test_sequence_of_parallel_groups()
     }
     oqpi_tk::schedule_task(oqpi::task_handle(spSeq)).wait();
     timing_registry::get().dump();
-    timing_registry::get().reset();
 
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    std::cout << std::endl << std::endl;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+void test_parallel_for()
+{
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    std::cout << __FUNCTION__ << std::endl;
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    const auto prio = oqpi::task_priority::normal;
+    const auto partitioner = oqpi::simple_partitioner(gTaskCount, oqpi_tk::scheduler().workersCount(prio));
+    oqpi_tk::parallel_for("FibonacciParallelFor", partitioner, prio,
+        [](int32_t)
+    {
+        volatile auto a = 0ull;
+        a += fibonacci(gValue + a);
+    });
+    timing_registry::get().dump();
+
+    std::cout << "-------------------------------------------------------------------" << std::endl;
     std::cout << std::endl << std::endl;
 }
 
@@ -206,6 +232,8 @@ int main()
     test_parallel_group();
     oqpi::this_thread::sleep_for(5ms);
     test_sequence_of_parallel_groups();
+    oqpi::this_thread::sleep_for(5ms);
+    test_parallel_for();
     oqpi::this_thread::sleep_for(5ms);
     clean_up_environement();
 }

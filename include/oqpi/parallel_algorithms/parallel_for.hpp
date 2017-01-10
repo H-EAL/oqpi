@@ -70,7 +70,7 @@ namespace oqpi {
         for (auto batchIndex = 0; batchIndex < nbBatches; ++batchIndex)
         {
             const auto &taskName = "Batch " + std::to_string(batchIndex + 1) + "/" + std::to_string(nbBatches);
-            auto taskHandle = make_task_item<_TaskContext>(taskName, prio,
+            auto taskHandle = make_task<task_type::fire_and_forget, _TaskContext>(taskName, prio,
                 [batchIndex, func, spPartitioner]()
             {
                 int32_t first = 0;

@@ -119,6 +119,7 @@ namespace oqpi {
             if (previousTaskCount == 1)
             {
                 this->notifyGroupDone();
+                tasks_.clear();
             }
             else if (maxSimultaneousTasks_ > 0)
             {

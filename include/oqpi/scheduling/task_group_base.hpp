@@ -49,6 +49,7 @@ namespace oqpi {
         if (spParentGroup_)
         {
             spParentGroup_->oneTaskDone();
+            spParentGroup_.reset();
         }
     }
     //----------------------------------------------------------------------------------------------

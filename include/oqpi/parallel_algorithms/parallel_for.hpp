@@ -55,11 +55,12 @@ namespace oqpi {
 
     //----------------------------------------------------------------------------------------------
     template<task_type _TaskType, typename _GroupContext, typename _TaskContext, typename _Scheduler, typename _Function, typename _Partitioner>
-    inline std::shared_ptr<parallel_group<_Scheduler, _TaskType, _GroupContext>>
-        make_parallel_for_task_group(_Scheduler &sc, const std::string &name, const _Partitioner &partitioner, task_priority prio, _Function &&func)
+    inline auto make_parallel_for_task_group(_Scheduler &sc, const std::string &name, const _Partitioner &partitioner, task_priority prio, _Function &&func)
     {
         if (!partitioner.isValid())
-            return nullptr;
+        {
+            return decltype(make_parallel_group<_TaskType, _GroupContext>(sc, "", prio, 0))(nullptr);
+        }
 
         const auto nbElements = partitioner.elementCount();
         const auto nbBatches  = partitioner.batchCount();

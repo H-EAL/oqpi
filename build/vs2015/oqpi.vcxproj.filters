@@ -29,9 +29,6 @@
     <Filter Include="include\scheduling\_groups">
       <UniqueIdentifier>{703cc9c8-4e70-417b-9499-dcef50807375}</UniqueIdentifier>
     </Filter>
-    <Filter Include="include\parallel_algorithms\_partitoners">
-      <UniqueIdentifier>{a1f45b61-79d6-41b7-b56e-1db52ec8034c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="include\threading">
       <UniqueIdentifier>{e4098ca4-bef3-4996-876b-0d59fdc0d2e6}</UniqueIdentifier>
     </Filter>
@@ -40,6 +37,9 @@
     </Filter>
     <Filter Include="include\_utils">
       <UniqueIdentifier>{ccd08aa3-26d9-4843-8644-9e1dcf59d308}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\parallel_algorithms\_partitioners">
+      <UniqueIdentifier>{a1f45b61-79d6-41b7-b56e-1db52ec8034c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -123,10 +123,10 @@
       <Filter>include\parallel_algorithms</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\oqpi\parallel_algorithms\base_partitioner.hpp">
-      <Filter>include\parallel_algorithms\_partitoners</Filter>
+      <Filter>include\parallel_algorithms\_partitioners</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\oqpi\parallel_algorithms\simple_partitioner.hpp">
-      <Filter>include\parallel_algorithms\_partitoners</Filter>
+      <Filter>include\parallel_algorithms\_partitioners</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\oqpi\threading.hpp">
       <Filter>include</Filter>

@@ -185,6 +185,25 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         // Group Context    : user defined
         // Task Context     : user defined
+        template<task_type _TaskType, typename _GroupContext, typename _TaskContext, typename _Func, typename _Partitioner>
+        inline static auto make_parallel_for_task_group(const std::string &name, const _Partitioner &partitioner, task_priority prio, _Func &&func)
+        {
+            return oqpi::make_parallel_for_task_group<_TaskType, _GroupContext, _TaskContext>(scheduler_, name, partitioner, prio, std::forward<_Func>(func));
+        }
+
+        //------------------------------------------------------------------------------------------
+        // Group Context    : default
+        // Task Context     : default
+        template<task_type _TaskType, typename _Func, typename _Partitioner>
+        inline static auto make_parallel_for_task_group(const std::string &name, const _Partitioner &partitioner, task_priority prio, _Func &&func)
+        {
+            return self_type::make_parallel_for_task_group<_TaskType, _DefaultGroupContext, _DefaultTaskContext>(name, partitioner, prio, std::forward<_Func>(func));
+        }
+
+
+        //------------------------------------------------------------------------------------------
+        // Group Context    : user defined
+        // Task Context     : user defined
         template<typename _GroupContext, typename _TaskContext, typename _Func, typename _Partitioner>
         inline static void parallel_for(const std::string &name, const _Partitioner &partitioner, task_priority prio, _Func &&func)
         {

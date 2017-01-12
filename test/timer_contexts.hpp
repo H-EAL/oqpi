@@ -80,7 +80,7 @@ public:
     void registerTask(uint64_t uid, const std::string &name)
     {
         auto t = query_performance_counter();
-        std::lock_guard<std::mutex> __l(m);
+        std::lock_guard<std::recursive_mutex> __l(m);
         auto &h = tasks[uid];
         h.name = name;
         h.createdAt = t;
@@ -88,14 +88,14 @@ public:
 
     void unregisterTask(uint64_t uid)
     {
-        std::lock_guard<std::mutex> __l(m);
+        std::lock_guard<std::recursive_mutex> __l(m);
         tasks.erase(uid);
     }
 
     void startTask(uint64_t uid)
     {
         auto t = query_performance_counter();
-        std::lock_guard<std::mutex> __l(m);
+        std::lock_guard<std::recursive_mutex> __l(m);
         //oqpi_check(tasks.find(name) == tasks.end());
         auto &h = tasks[uid];
         h.startedOnCore_ = oqpi::this_thread::get_current_core();
@@ -105,7 +105,7 @@ public:
     void endTask(uint64_t uid)
     {
         auto t = query_performance_counter();
-        std::lock_guard<std::mutex> __l(m);
+        std::lock_guard<std::recursive_mutex> __l(m);
         auto it = tasks.find(uid);
         //oqpi_check(it != tasks.end());
         it->second.stoppedAt_ = t;
@@ -115,7 +115,7 @@ public:
 
     void addToGroup(uint64_t guid, oqpi::task_handle hTask)
     {
-        std::lock_guard<std::mutex> __l(m);
+        std::lock_guard<std::recursive_mutex> __l(m);
         // Flag the task as having a parent
         auto tit = tasks.find(hTask.getUID());
         tit->second.parentUID = guid;
@@ -129,7 +129,7 @@ public:
     {
         std::vector<oqpi::task_handle> childrenToDelete;
         {
-            std::lock_guard<std::mutex> __l(m);
+            std::lock_guard<std::recursive_mutex> __l(m);
             std::vector<task_info*> infos;
             for (auto &p : tasks)
             {
@@ -211,7 +211,7 @@ public:
     }
 
 private:
-    std::mutex m;       
+    std::recursive_mutex m;
     std::unordered_map<uint64_t, task_info> tasks;
 };
 

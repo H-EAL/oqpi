@@ -16,9 +16,14 @@ using semaphore         = oqpi::semaphore_interface;
 template<typename T>
 using cqueue            = qqueue<T, std::mutex>;
 using scheduler_type    = oqpi::scheduler<cqueue>;
-using gc                = oqpi::group_context_container<timer_group_context>;
-using tc                = oqpi::task_context_container<timer_task_context>;
-using oqpi_tk           = oqpi::helpers<scheduler_type, gc, tc>;
+#if 1
+    using gc            = oqpi::group_context_container<timer_group_context>;
+    using tc            = oqpi::task_context_container<timer_task_context>;
+    using oqpi_tk       = oqpi::helpers<scheduler_type, gc, tc>;
+#else
+    using oqpi_tk       = oqpi::helpers<scheduler_type>;
+#endif
+
 
 
 //--------------------------------------------------------------------------------------------------

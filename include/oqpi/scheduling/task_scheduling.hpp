@@ -8,7 +8,7 @@
 
 namespace oqpi {
 
-    template<typename _Scheduler, typename _DefaultGroupContext, typename _DefaultTaskContext>
+    template<typename _Scheduler, typename _DefaultGroupContext = empty_group_context, typename _DefaultTaskContext = empty_task_context>
     struct helpers
     {
         //------------------------------------------------------------------------------------------

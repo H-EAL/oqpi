@@ -77,7 +77,7 @@ public:
         return instance;
     }
 
-    void registerTask(uint64_t uid, const std::string &name)
+    void registerTask(oqpi::task_uid uid, const std::string &name)
     {
         auto t = query_performance_counter();
         std::lock_guard<std::recursive_mutex> __l(m);
@@ -86,13 +86,13 @@ public:
         h.createdAt = t;
     }
 
-    void unregisterTask(uint64_t uid)
+    void unregisterTask(oqpi::task_uid uid)
     {
         std::lock_guard<std::recursive_mutex> __l(m);
         tasks.erase(uid);
     }
 
-    void startTask(uint64_t uid)
+    void startTask(oqpi::task_uid uid)
     {
         auto t = query_performance_counter();
         std::lock_guard<std::recursive_mutex> __l(m);
@@ -102,7 +102,7 @@ public:
         h.startedAt_ = t;
     }
 
-    void endTask(uint64_t uid)
+    void endTask(oqpi::task_uid uid)
     {
         auto t = query_performance_counter();
         std::lock_guard<std::recursive_mutex> __l(m);
@@ -113,7 +113,7 @@ public:
         it->second.stoppedOnCore_ = oqpi::this_thread::get_current_core();
     }
 
-    void addToGroup(uint64_t guid, oqpi::task_handle hTask)
+    void addToGroup(oqpi::task_uid guid, oqpi::task_handle hTask)
     {
         std::lock_guard<std::recursive_mutex> __l(m);
         // Flag the task as having a parent

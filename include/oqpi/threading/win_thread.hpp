@@ -378,6 +378,11 @@ namespace oqpi {
             win_thread::set_core_affinity_mask(GetCurrentThread(), coreAffinityMask);
         }
         //------------------------------------------------------------------------------------------
+        inline auto get_id()
+        {
+            return win_thread::get_current_thread_id();
+        }
+        //------------------------------------------------------------------------------------------
 
     } /*this_thread*/
 

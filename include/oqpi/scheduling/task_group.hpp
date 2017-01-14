@@ -79,6 +79,12 @@ namespace oqpi {
             wait();
         }
 
+        //------------------------------------------------------------------------------------------
+        virtual void onParentGroupSet() override
+        {
+            _GroupContext::group_onAddedToGroup(this->spParentGroup_);
+        }
+
     protected:
         //------------------------------------------------------------------------------------------
         // Implementation details interface

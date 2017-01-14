@@ -25,6 +25,7 @@ namespace oqpi {
             return pOwner_;
         }
 
+        inline void onAddedToGroup(const task_group_sptr &) {};
         inline void onTaskAdded(const task_handle &) {}
         inline void onPreExecute()  {}
         inline void onPostExecute() {}

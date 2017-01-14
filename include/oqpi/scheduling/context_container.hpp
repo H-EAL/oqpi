@@ -68,6 +68,11 @@ namespace oqpi {
 
         //------------------------------------------------------------------------------------------
         // Group context
+        inline void group_onAddedToGroup(const task_group_sptr &spParentGroup)
+        {
+            group_on_added_to_group<self_type, _ContextList...>(*this, spParentGroup);
+        }
+
         inline void group_onTaskAdded(const task_handle &hTask)
         {
             group_on_task_added<self_type, _ContextList...>(*this, hTask);
@@ -87,6 +92,11 @@ namespace oqpi {
 
         //------------------------------------------------------------------------------------------
         // Task context
+        inline void task_onAddedToGroup(const task_group_sptr &spParentGroup)
+        {
+            task_on_added_to_group<self_type, _ContextList...>(*this, spParentGroup);
+        }
+
         inline void task_onPreExecute()
         {
             task_on_pre_execute<self_type, _ContextList...>(*this);
@@ -156,6 +166,14 @@ namespace oqpi {
         // Group Context
         //------------------------------------------------------------------------------------------
         template<typename _ContextContainer, typename _Context, typename... _TContextList>
+        inline static void group_on_added_to_group(_ContextContainer &contextContainer, const task_group_sptr &spParentGroup)
+        {
+            contextContainer._Context::onAddedToGroup(spParentGroup);
+            group_on_added_to_group<_ContextContainer, _TContextList...>(contextContainer, spParentGroup);
+        }
+        template<typename _ContextContainer> inline static void group_on_added_to_group(_ContextContainer &, const task_group_sptr &) {} // EoR
+        //------------------------------------------------------------------------------------------
+        template<typename _ContextContainer, typename _Context, typename... _TContextList>
         inline static void group_on_task_added(_ContextContainer &contextContainer, const task_handle &hTask)
         {
             contextContainer._Context::onTaskAdded(hTask);
@@ -183,6 +201,14 @@ namespace oqpi {
 
         //------------------------------------------------------------------------------------------
         // Task Context
+        //------------------------------------------------------------------------------------------
+        template<typename _ContextContainer, typename _Context, typename... _TContextList>
+        inline static void task_on_added_to_group(_ContextContainer &contextContainer, const task_group_sptr &spParentGroup)
+        {
+            contextContainer._Context::onAddedToGroup(spParentGroup);
+            task_on_added_to_group<_ContextContainer, _TContextList...>(contextContainer, spParentGroup);
+        }
+        template<typename _ContextContainer> inline static void task_on_added_to_group(_ContextContainer &, const task_group_sptr &) {}
         //------------------------------------------------------------------------------------------
         template<typename _ContextContainer, typename _Context, typename... _TContextList>
         inline static void task_on_pre_execute(_ContextContainer &contextContainer)

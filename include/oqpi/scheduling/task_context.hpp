@@ -22,6 +22,7 @@ namespace oqpi {
         inline task_base* owner() const { return pOwner_; }
 
     public:
+        inline void onAddedToGroup(const task_group_sptr &) {}
         inline void onPreExecute() {}
         inline void onPostExecute() {}
 

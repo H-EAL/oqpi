@@ -98,6 +98,12 @@ namespace oqpi {
         }
 
         //------------------------------------------------------------------------------------------
+        virtual void onParentGroupSet() override
+        {
+            _TaskContext::task_onAddedToGroup(this->spParentGroup_);
+        }
+
+        //------------------------------------------------------------------------------------------
         _ReturnType getResult() const
         {
             oqpi_checkf(task_base::isDone(), "Trying to get the result of an unfinished task: %d", task_base::getUID());

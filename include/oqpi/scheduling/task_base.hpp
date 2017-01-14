@@ -78,6 +78,7 @@ namespace oqpi {
         virtual void executeSingleThreaded()    = 0;
         virtual void wait() const               = 0;
         virtual void activeWait()               = 0;
+        virtual void onParentGroupSet()         = 0;
 
     public:
         //------------------------------------------------------------------------------------------
@@ -90,6 +91,7 @@ namespace oqpi {
         inline void setParentGroup(const task_group_sptr &spParentGroup)
         {
             spParentGroup_ = spParentGroup;
+            onParentGroupSet();
         }
 
         inline const task_group_sptr& getParentGroup() const

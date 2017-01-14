@@ -13,7 +13,10 @@
 
 namespace oqpi {
 
-    using auto_reset_event_interface    = itfc::event<event_impl<event_auto_reset_policy_impl>    , empty_layer>;
-    using manual_reset_event_interface  = itfc::event<event_impl<event_manual_reset_policy_impl>  , empty_layer>;
+    template<template<typename> typename _Layer = empty_layer>
+    using auto_reset_event_interface    = itfc::event<event_impl<event_auto_reset_policy_impl>    , _Layer>;
+
+    template<template<typename> typename _Layer = empty_layer>
+    using manual_reset_event_interface  = itfc::event<event_impl<event_manual_reset_policy_impl>  , _Layer>;
 
 }

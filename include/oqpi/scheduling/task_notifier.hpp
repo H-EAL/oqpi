@@ -72,7 +72,7 @@ namespace oqpi {
 
     private:
         // Done event
-        manual_reset_event_interface event_;
+        manual_reset_event_interface<> event_;
     };
     //----------------------------------------------------------------------------------------------
 

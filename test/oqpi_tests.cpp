@@ -11,8 +11,8 @@ using namespace std::chrono_literals;
 
 //--------------------------------------------------------------------------------------------------
 // Types
-using thread            = oqpi::thread_interface;
-using semaphore         = oqpi::semaphore_interface;
+using thread            = oqpi::thread_interface<>;
+using semaphore         = oqpi::semaphore_interface<>;
 template<typename T>
 using cqueue            = qqueue<T, std::mutex>;
 using scheduler_type    = oqpi::scheduler<cqueue>;

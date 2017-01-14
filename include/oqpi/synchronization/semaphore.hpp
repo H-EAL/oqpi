@@ -13,6 +13,7 @@
 
 namespace oqpi {
 
-    using semaphore_interface = itfc::semaphore<semaphore_impl, empty_layer>;
+    template<template<typename> typename _Layer = empty_layer>
+    using semaphore_interface = itfc::semaphore<semaphore_impl, _Layer>;
 
 }

@@ -2,6 +2,7 @@
 #include <queue>
 #include <mutex>
 
+#define OQPI_USE_DEFAULT
 #include "oqpi.hpp"
 
 #include "cqueue.hpp"
@@ -11,8 +12,6 @@ using namespace std::chrono_literals;
 
 //--------------------------------------------------------------------------------------------------
 // Types
-using thread            = oqpi::thread_interface<>;
-using semaphore         = oqpi::semaphore_interface<>;
 template<typename T>
 using cqueue            = qqueue<T, std::mutex>;
 using scheduler_type    = oqpi::scheduler<cqueue>;
@@ -29,10 +28,7 @@ using scheduler_type    = oqpi::scheduler<cqueue>;
 //--------------------------------------------------------------------------------------------------
 void setup_environment()
 {
-//     std::cout << "-------------------------------------------------------------------" << std::endl;
-//     std::cout << __FUNCTION__ << std::endl;
-//     std::cout << "-------------------------------------------------------------------" << std::endl;
-    const auto workerCount = thread::hardware_concurrency();
+    const auto workerCount = oqpi::thread::hardware_concurrency();
     for (auto i = 0u; i < workerCount; ++i)
     {
         auto config = oqpi::worker_config{};
@@ -41,17 +37,16 @@ void setup_environment()
         config.threadAttributes.priority_           = oqpi::thread_priority::highest;
         config.workerPrio                           = oqpi::worker_priority::wprio_any;
         config.count                                = 1;
-        oqpi_tk::scheduler().registerWorker<thread, semaphore>(config);
+        oqpi_tk::scheduler().registerWorker<oqpi::thread, oqpi::semaphore>(config);
     }
 
     oqpi_tk::scheduler().start();
-//    std::cout << std::endl << std::endl;
 }
 
 
 //--------------------------------------------------------------------------------------------------
 static constexpr auto gValue = 10000000ull;
-static const auto gTaskCount = int(thread::hardware_concurrency());
+static const auto gTaskCount = int(oqpi::thread::hardware_concurrency());
 
 //--------------------------------------------------------------------------------------------------
 uint64_t fibonacci(uint64_t n)

@@ -16,4 +16,8 @@ namespace oqpi {
     template<template<typename> typename _Layer = empty_layer>
     using thread_interface = itfc::thread<thread_impl, _Layer>;
 
+#ifdef OQPI_USE_DEFAULT
+    using thread = thread_interface<>;
+#endif
+
 }

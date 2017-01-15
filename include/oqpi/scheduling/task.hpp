@@ -113,7 +113,8 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         return_type waitForResult() const
         {
-            return wait(), getResult();
+            wait();
+            return getResult();
         }
 
     private:
@@ -123,10 +124,7 @@ namespace oqpi {
             // Run the preExecute code of the context
             _TaskContext::task_onPreExecute();
             // Run the task itself
-            task_result_type::run([this]
-            {
-                return func_();
-            });
+            task_result_type::run(func_);
             // Flag the task as done
             task_base::setDone();
             // Run the postExecute code of the context

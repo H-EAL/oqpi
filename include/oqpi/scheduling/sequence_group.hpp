@@ -85,7 +85,7 @@ namespace oqpi {
         task_handle popTask()
         {
             task_handle hTask;
-            if (oqpi_ensuref(!empty(), "Attempting to execute an empty sequence: %s", this->getUID()))
+            if (oqpi_ensuref(!empty(), "Attempting to execute an empty sequence: %d", this->getUID()))
             {
                 hTask = tasks_.front();
                 tasks_.pop();

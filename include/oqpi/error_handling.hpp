@@ -6,6 +6,16 @@
 
 #include "oqpi/platform.hpp"
 
+#if _DEBUG
+#   define OQPI_ENABLE_CHECKS   (1)
+#   define OQPI_ENABLE_LOGS     (1)
+#else
+#   define OQPI_ENABLE_CHECKS   (0)
+#   define OQPI_ENABLE_LOGS     (1)
+#endif
+
+#if OQPI_ENABLE_CHECKS
+
 //----------------------------------------------------------------------------------------------
 #define OQPI_ASSERT_DO_NOT_USE(Condition, File, Line)                                                   \
     {                                                                                                   \
@@ -61,11 +71,6 @@
 #define oqpi_failed(COND)               ((COND) ? false : assert_and_return_true(__FILE__, __LINE__, #COND))
 #define oqpi_failedf(COND, MSG, ...)    ((COND) ? false : assert_and_return_true(__FILE__, __LINE__, #COND, (MSG), ##__VA_ARGS__))
 //----------------------------------------------------------------------------------------------
-// Error logs
-#define oqpi_error(MSG, ...)
-#define oqpi_warning(MSG, ...)
-//----------------------------------------------------------------------------------------------
-
 
 
 //----------------------------------------------------------------------------------------------
@@ -158,3 +163,37 @@ inline bool assert_and_return_true(const char *file, int line, const char *expre
     return true;
 }
 //--------------------------------------------------------------------------------------------------
+
+#else
+
+//----------------------------------------------------------------------------------------------
+// verify always executes the condition code
+#define oqpi_verify(COND)               (COND)
+#define oqpi_verifyf(COND, MSG, ...)    (COND)
+//----------------------------------------------------------------------------------------------
+// whereas check executes it only on debug mode
+#define oqpi_check(COND)
+#define oqpi_checkf(COND, MSG, ...)
+//----------------------------------------------------------------------------------------------
+// In non debug builds, ensure always evaluates to true and do not execute the condition code.
+#define oqpi_ensure(COND)               (true)
+#define oqpi_ensuref(COND, MSG, ...)    (true)
+//----------------------------------------------------------------------------------------------
+// In non debug builds, failed always evaluates to false and do not execute the condition code.
+#define oqpi_failed(COND)               (false)
+#define oqpi_failedf(COND, MSG, ...)    (false)
+//----------------------------------------------------------------------------------------------
+
+#endif // OQPI_ENABLE_CHECKS
+
+
+//----------------------------------------------------------------------------------------------
+// Error and warning logs
+#if OQPI_ENABLE_LOGS
+#   define oqpi_error(MSG, ...)     fprintf(stderr, "[error  ] " ## MSG ## "\n", ##__VA_ARGS__)
+#   define oqpi_warning(MSG, ...)   fprintf(stderr, "[warning] " ## MSG ## "\n", ##__VA_ARGS__)
+#else
+#   define oqpi_error(MSG, ...)
+#   define oqpi_warning(MSG, ...)
+#endif // OQPI_ENABLE_LOGS
+//----------------------------------------------------------------------------------------------

@@ -19,7 +19,6 @@ namespace oqpi {
     //
     // This group is NOT thread safe! Meaning it does not allow multiple threads to concurrently add
     // tasks to it.
-    // For a thread safe version of such a group see open_parallel_group.
     //
     template<typename _Scheduler, task_type _TaskType, typename _GroupContext>
     class parallel_group final

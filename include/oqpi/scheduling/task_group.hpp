@@ -11,8 +11,8 @@ namespace oqpi {
     template<typename _Scheduler, task_type _TaskType, typename _GroupContext>
     class task_group
         : public task_group_base
-        , public notifier<_TaskType>
         , public _GroupContext
+        , public notifier<_TaskType>
     {
         //------------------------------------------------------------------------------------------
         using self_type     = task_group<_Scheduler, _TaskType, _GroupContext>;
@@ -22,14 +22,13 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         task_group(_Scheduler &sc, const std::string &name, task_priority priority)
             : task_group_base(priority)
-            , notifier_type(task_base::getUID())
             , _GroupContext(this, name)
+            , notifier_type(task_base::getUID())
             , scheduler_(sc)
         {}
 
         //------------------------------------------------------------------------------------------
-        virtual ~task_group()
-        {}
+        virtual ~task_group() = default;
 
     public:
         //------------------------------------------------------------------------------------------
@@ -80,7 +79,7 @@ namespace oqpi {
         }
 
         //------------------------------------------------------------------------------------------
-        virtual void onParentGroupSet() override
+        virtual void onParentGroupSet() override final
         {
             _GroupContext::group_onAddedToGroup(this->spParentGroup_);
         }
@@ -99,7 +98,7 @@ namespace oqpi {
         {
             task_base::setDone();
             _GroupContext::group_onPostExecute();
-            notifier<_TaskType>::notify();
+            notifier_type::notify();
             task_base::notifyParent();
         }
 

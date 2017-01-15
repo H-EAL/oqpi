@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string>
-
 #include "oqpi/error_handling.hpp"
 #include "oqpi/scheduling/task.hpp"
 #include "oqpi/scheduling/task_base.hpp"

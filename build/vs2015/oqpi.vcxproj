@@ -42,11 +42,11 @@
     <ClInclude Include="..\..\include\oqpi\scheduling\task_handle.hpp" />
     <ClInclude Include="..\..\include\oqpi\scheduling\task_notifier.hpp" />
     <ClInclude Include="..\..\include\oqpi\scheduling\task_result.hpp" />
-    <ClInclude Include="..\..\include\oqpi\scheduling\task_scheduling.hpp" />
     <ClInclude Include="..\..\include\oqpi\scheduling\task_type.hpp" />
     <ClInclude Include="..\..\include\oqpi\scheduling\worker.hpp" />
     <ClInclude Include="..\..\include\oqpi\scheduling\worker_base.hpp" />
     <ClInclude Include="..\..\include\oqpi\scheduling\worker_context.hpp" />
+    <ClInclude Include="..\..\include\oqpi\scheduling_helpers.hpp" />
     <ClInclude Include="..\..\include\oqpi\synchronization.hpp" />
     <ClInclude Include="..\..\include\oqpi\synchronization\event.hpp" />
     <ClInclude Include="..\..\include\oqpi\synchronization\interface\interface_event.hpp" />

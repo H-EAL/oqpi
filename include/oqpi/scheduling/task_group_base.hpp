@@ -26,16 +26,11 @@ namespace oqpi {
             : task_base(priority)
         {}
 
-        virtual ~task_group_base()
-        {}
+        virtual ~task_group_base() = default;
 
     public:
         virtual void addTask(task_handle hTask) = 0;
-        virtual void execute()                  = 0;
-        virtual void executeSingleThreaded()    = 0;
         virtual void oneTaskDone()              = 0;
-        virtual void wait()         const       = 0;
-        virtual void activeWait()               = 0;
         virtual bool empty()        const       = 0;
     };
     //----------------------------------------------------------------------------------------------

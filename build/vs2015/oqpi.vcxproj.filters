@@ -101,9 +101,6 @@
     <ClInclude Include="..\..\include\oqpi\synchronization\interface\interface_semaphore.hpp">
       <Filter>include\synchronization\interface</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\oqpi\scheduling\task_scheduling.hpp">
-      <Filter>include\scheduling</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\oqpi\scheduling\task_group_base.hpp">
       <Filter>include\scheduling\_groups</Filter>
     </ClInclude>
@@ -163,6 +160,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\oqpi\parallel_algorithms\atomic_partitioner.hpp">
       <Filter>include\parallel_algorithms\_partitioners</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\scheduling_helpers.hpp">
+      <Filter>include\_utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

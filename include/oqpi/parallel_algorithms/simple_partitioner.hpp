@@ -38,9 +38,11 @@ namespace oqpi {
             const auto batchIndex = batchIndex_++;
             if (batchIndex >= batchCount_)
             {
+                // All batches have been processed
                 return false;
             }
             
+            // Return the range [fromIndex; toIndex[
             fromIndex = firstIndexOfBatch(batchIndex);
             toIndex   = lastIndexOfBatch(batchIndex);
 
@@ -50,18 +52,25 @@ namespace oqpi {
     private:
         inline int32_t firstIndexOfBatch(int32_t batchIndex) const
         {
-            return (batchIndex > 0) ? lastIndexOfBatch(batchIndex - 1) : 0;
+            // The first index of the first batch is firstIndex_.
+            // The first index of all other batches is the last index of the previous batch.
+            return (batchIndex > 0) ? lastIndexOfBatch(batchIndex - 1) : firstIndex_;
         }
 
         inline int32_t lastIndexOfBatch(int32_t batchIndex) const
         {
-            const auto offset = (batchIndex >= remainder_) ? remainder_ : batchIndex + 1;
-            return firstIndex_ + (batchIndex + 1) * nbElementsPerBatch_ + offset;
+            // If there's a remainder, each batch with batchIndex < remainder will process one extra element.
+            // So each batch has to be offset by at most remainder_ number of elements.
+            const auto offset = (batchIndex < remainder_) ? batchIndex + 1 : remainder_;
+            return firstIndex_ + ((batchIndex + 1) * nbElementsPerBatch_) + offset;
         }
 
     private:
+        // Minimum number of elements each batch should have (can be more if there is a remainder).
         const int32_t           nbElementsPerBatch_;
+        // If elementCount_ is not divisible by batchCount_, this holds the remainder of that division.
         const int32_t           remainder_;
+        // Each worker increments this atomic and is given the corresponding range, until it reaches batchCount_.
         std::atomic<int32_t>    batchIndex_;
     };
 

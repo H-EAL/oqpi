@@ -11,6 +11,8 @@ namespace oqpi {
     //----------------------------------------------------------------------------------------------
 
     //----------------------------------------------------------------------------------------------
+    // Optional base class for task contexts, should be inherited from virtually
+    //
     class task_context_base
     {
     public:

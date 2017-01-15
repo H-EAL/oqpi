@@ -11,6 +11,8 @@ namespace oqpi {
     //----------------------------------------------------------------------------------------------
 
     //----------------------------------------------------------------------------------------------
+    // Optional base class for worker contexts, should be inherited from virtually
+    //
     class worker_context_base
     {
     public:

@@ -28,6 +28,8 @@ using scheduler_type    = oqpi::scheduler<cqueue>;
 //--------------------------------------------------------------------------------------------------
 void setup_environment()
 {
+    oqpi_error("test %d", 42);
+    oqpi_warning("test %d", 12);
     const auto workerCount = oqpi::thread::hardware_concurrency();
     for (auto i = 0u; i < workerCount; ++i)
     {

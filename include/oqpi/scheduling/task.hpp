@@ -11,8 +11,8 @@ namespace oqpi {
     class task final
         : public task_base
         , public task_result<typename std::result_of<_Func()>::type>
-        , public notifier<_TaskType, _EventType>
         , public _TaskContext
+        , public notifier<_TaskType, _EventType>
     {
         //------------------------------------------------------------------------------------------
         using self_type         = task<_TaskType, _EventType, _TaskContext, _Func>;
@@ -24,8 +24,8 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         task(const std::string &name, task_priority priority, _Func func)
             : task_base(priority)
-            , notifier_type(task_base::getUID())
             , _TaskContext(this, name)
+            , notifier_type(task_base::getUID())
             , func_(std::move(func))
         {}
 
@@ -33,8 +33,8 @@ namespace oqpi {
         // Movable
         task(self_type &&other)
             : task_base(std::move(other))
-            , notifier_type(std::move(other))
             , _TaskContext(std::move(other))
+            , notifier_type(std::move(other))
             , func_(std::move(other.func_))
         {}
 
@@ -44,8 +44,8 @@ namespace oqpi {
             if (this != &rhs)
             {
                 task_base::operator =(std::move(rhs));
-                notifier_type::operator =(std::move(rhs));
                 _TaskContext::operator =(std::move(rhs));
+                notifier_type::operator =(std::move(rhs));
                 func_ = std::move(rhs.func_);
             }
             return (*this);
@@ -98,7 +98,7 @@ namespace oqpi {
         }
 
         //------------------------------------------------------------------------------------------
-        virtual void onParentGroupSet() override
+        virtual void onParentGroupSet() override final
         {
             _TaskContext::task_onAddedToGroup(this->spParentGroup_);
         }

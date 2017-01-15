@@ -13,9 +13,9 @@ namespace oqpi {
 
     //----------------------------------------------------------------------------------------------
     // The scheduler holds several task queues (one queue per priority).
-    // It also holds a list of workers. Is then assigns tasks to workers according to priority
+    // It also holds a list of workers. It assigns tasks to workers according to priority
     // rules. A worker can be assigned to one to several priorities. The scheduler will always
-    // check the queue with the highest priority first then go down to the lowest fi and only if 
+    // check the queue with the highest priority first then go down to the lowest if and only if 
     // the highest priority queues are empty.
     //
     template<template<typename> class _TaskQueueType>
@@ -168,22 +168,22 @@ namespace oqpi {
         {
             task_priority priority = hTask.getPriority();
 
-//             if (priority == task_priority::inherit)
-//             {
-//                 auto pParentGroup = hTask.getParentGroup().get();
-//                 do 
-//                 {
-//                     if (oqpi_failedf(pParentGroup != nullptr, "One parent group is invalid for this task: %s", hTask.getName().c_str()))
-//                     {
+            if (priority == task_priority::inherit)
+            {
+                auto pParentGroup = hTask.getParentGroup().get();
+                do 
+                {
+                    if (oqpi_failedf(pParentGroup != nullptr, "One parent group is invalid for this task: %d", hTask.getUID()))
+                    {
                          priority = task_priority::normal;
-//                         break;
-//                     }
-// 
-//                     priority     = pParentGroup->getPriority();
-//                     pParentGroup = pParentGroup->getParentGroup().get();
-// 
-//                 } while (priority == task_priority::inherit);
-//             }
+                        break;
+                    }
+
+                    priority     = pParentGroup->getPriority();
+                    pParentGroup = pParentGroup->getParentGroup().get();
+
+                } while (priority == task_priority::inherit);
+            }
 
             return priority;
         }
@@ -199,7 +199,7 @@ namespace oqpi {
                     return true;
                 }
 
-                for (int prio = 0; prio < PRIO_COUNT; ++prio)
+                for (auto prio = 0; prio < PRIO_COUNT; ++prio)
                 {
                     if (w.canWorkOnPriority(task_priority(prio)))
                     {
@@ -295,7 +295,7 @@ namespace oqpi {
         }
 
     private:
-        static const auto PRIO_COUNT = int(task_priority::count);
+        static const auto PRIO_COUNT = int32_t(task_priority::count);
 
         std::vector<worker_uptr>    workers_;
         int32_t                     workersPerPrio_[PRIO_COUNT];

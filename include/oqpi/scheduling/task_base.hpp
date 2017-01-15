@@ -78,6 +78,8 @@ namespace oqpi {
         virtual void executeSingleThreaded()    = 0;
         virtual void wait() const               = 0;
         virtual void activeWait()               = 0;
+
+    protected:
         virtual void onParentGroupSet()         = 0;
 
     public:
@@ -142,7 +144,6 @@ namespace oqpi {
 
     private:
         //------------------------------------------------------------------------------------------
-        // Id provider
         static inline task_uid uid_provider()
         {
             // Starts at 1 as 0 is the invalid value

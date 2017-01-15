@@ -12,6 +12,8 @@ namespace oqpi {
     //----------------------------------------------------------------------------------------------
 
     //----------------------------------------------------------------------------------------------
+    // Optional base class for group contexts, should be inherited from virtually
+    //
     class group_context_base
     {
     public:

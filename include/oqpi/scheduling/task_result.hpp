@@ -5,7 +5,7 @@ namespace oqpi {
 
     //----------------------------------------------------------------------------------------------
     // Helper class containing an arbitrary result of a task.
-    // _ReturnType must be default constructible and at copyable or movable.
+    // _ReturnType must be default constructible and copyable or movable.
     template<typename _ReturnType>
     class task_result
     {

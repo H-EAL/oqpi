@@ -3,8 +3,8 @@
 #include "oqpi/platform.hpp"
 
 #if OQPI_PLATFORM_WIN
-#pragma warning (push)
-#pragma warning (disable : 4100)
+#   pragma warning (push)
+#   pragma warning (disable : 4100)
 // https://connect.microsoft.com/VisualStudio/feedback/details/1031958/unreferenced-formal-parameter-warning-c4100-checks-code-after-variadics-expansion
 #endif
 
@@ -232,5 +232,5 @@ namespace oqpi {
 } /*oqpi*/
 
 #if OQPI_PLATFORM_WIN
-#pragma warning (pop)
+#   pragma warning (pop)
 #endif

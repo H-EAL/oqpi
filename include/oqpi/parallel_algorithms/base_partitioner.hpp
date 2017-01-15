@@ -1,10 +1,12 @@
 #pragma once
 
-#include <cstdint>
-
 
 namespace oqpi {
 
+    //------------------------------------------------------------------------------------------
+    // Base class for the majority of partitioners.
+    // Keeps first and last indexes and calculates the total number of elements in that range.
+    //
     class base_partitioner
     {
     protected:

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <tuple>
 #include "oqpi/scheduling/task_base.hpp"
 #include "oqpi/scheduling/task_result.hpp"
 #include "oqpi/scheduling/task_notifier.hpp"
@@ -8,25 +7,26 @@
 
 namespace oqpi {
 
-    template<task_type _TaskType, typename _TaskContext, typename _Tuple, typename _ReturnType>
+    template<task_type _TaskType, typename _TaskContext, typename _Func>
     class task final
         : public task_base
-        , public task_result<_ReturnType>
+        , public task_result<typename std::result_of<_Func()>::type>
         , public notifier<_TaskType>
         , public _TaskContext
     {
         //------------------------------------------------------------------------------------------
-        using self_type         = task<_TaskType, _TaskContext, _Tuple, _ReturnType>;
-        using task_result_type  = task_result<_ReturnType>;
+        using self_type         = task<_TaskType, _TaskContext, _Func>;
+        using return_type       = typename std::result_of<_Func()>::type;
+        using task_result_type  = task_result<return_type>;
         using notifier_type     = notifier<_TaskType>;
 
     public:
         //------------------------------------------------------------------------------------------
-        task(const std::string &name, task_priority priority, _Tuple tuple)
+        task(const std::string &name, task_priority priority, _Func func)
             : task_base(priority)
             , notifier_type(task_base::getUID())
             , _TaskContext(this, name)
-            , tuple_(std::move(tuple))
+            , func_(std::move(func))
         {}
 
         //------------------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ namespace oqpi {
             : task_base(std::move(other))
             , notifier_type(std::move(other))
             , _TaskContext(std::move(other))
-            , tuple_(std::move(other.tuple_))
+            , func_(std::move(other.func_))
         {}
 
         //------------------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ namespace oqpi {
                 task_base::operator =(std::move(rhs));
                 notifier_type::operator =(std::move(rhs));
                 _TaskContext::operator =(std::move(rhs));
-                tuple_ = std::move(rhs.tuple_);
+                func_ = std::move(rhs.func_);
             }
             return (*this);
         }
@@ -104,14 +104,14 @@ namespace oqpi {
         }
 
         //------------------------------------------------------------------------------------------
-        _ReturnType getResult() const
+        return_type getResult() const
         {
             oqpi_checkf(task_base::isDone(), "Trying to get the result of an unfinished task: %d", task_base::getUID());
             return task_result_type::getResult();
         }
 
         //------------------------------------------------------------------------------------------
-        _ReturnType waitForResult() const
+        return_type waitForResult() const
         {
             return wait(), getResult();
         }
@@ -125,7 +125,7 @@ namespace oqpi {
             // Run the task itself
             task_result_type::run([this]
             {
-                return invokeTuple(std::make_integer_sequence<size_t, std::tuple_size<typename _Tuple>::value>());
+                return func_();
             });
             // Flag the task as done
             task_base::setDone();
@@ -134,15 +134,9 @@ namespace oqpi {
             // Signal that the task is done
             notifier_type::notify();
         }
-        //------------------------------------------------------------------------------------------
-        template<size_t... _Indices>
-        inline auto invokeTuple(std::integer_sequence<size_t, _Indices...>)
-        {
-            return std::invoke(std::move(std::get<_Indices>(tuple_))...);
-        }
 
     private:
-        _Tuple tuple_;
+        _Func func_;
     };
     //----------------------------------------------------------------------------------------------
 
@@ -153,14 +147,17 @@ namespace oqpi {
     template<task_type _TaskType, typename _TaskContext, typename _Func, typename... _Args>
     inline auto make_task(const std::string &name, task_priority priority, _Func &&func, _Args &&...args)
     {
-        using tuple_type    = std::tuple<std::decay_t<_Func>, std::decay_t<_Args>...>;
-        using return_type   = typename std::result_of<_Func(_Args...)>::type;
-        using task_type     = task<_TaskType, _TaskContext, tuple_type, return_type>;
+        const auto f = [func = std::forward<_Func>(func), &args...]
+        {
+            return func(std::forward<_Args>(args)...);
+        };
+
+        using task_type = task<_TaskType, _TaskContext, std::decay_t<decltype(f)>>;
         return std::make_shared<task_type>
         (
             name,
             priority,
-            tuple_type(std::forward<_Func>(func), std::forward<_Args>(args)...)
+            std::move(f)
         );
     }
     //----------------------------------------------------------------------------------------------

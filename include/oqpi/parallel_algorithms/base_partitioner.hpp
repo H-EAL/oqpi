@@ -5,8 +5,9 @@
 
 namespace oqpi {
 
-    struct base_partitioner
+    class base_partitioner
     {
+    protected:
         //------------------------------------------------------------------------------------------
         base_partitioner(int32_t firstIndex, int32_t lastIndex, int32_t maxBatches)
             : firstIndex_   (firstIndex)
@@ -28,6 +29,7 @@ namespace oqpi {
             , batchCount_   (other.batchCount_)
         {}
 
+    public:
         //------------------------------------------------------------------------------------------
         inline int32_t isValid() const
         {

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <atomic>
-#include <cstdint>
 
 #include "oqpi/parallel_algorithms/base_partitioner.hpp"
 
@@ -12,9 +11,10 @@ namespace oqpi {
     // Partitioner dividing a set of indices into fixed size batches and giving one batch to each 
     // worker.
     //
-    struct simple_partitioner
+    class simple_partitioner
         : public base_partitioner
     {
+    public:
         simple_partitioner(int32_t firstIndex, int32_t lastIndex, int32_t maxBatches)
             : base_partitioner      (firstIndex, lastIndex, maxBatches)
             , nbElementsPerBatch_   ((elementCount_ >= maxBatches) ? (elementCount_ / batchCount_) : 1)

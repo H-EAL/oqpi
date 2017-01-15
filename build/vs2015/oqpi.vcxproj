@@ -23,6 +23,7 @@
     <ClInclude Include="..\..\include\oqpi\empty_layer.hpp" />
     <ClInclude Include="..\..\include\oqpi\error_handling.hpp" />
     <ClInclude Include="..\..\include\oqpi\parallel_algorithms.hpp" />
+    <ClInclude Include="..\..\include\oqpi\parallel_algorithms\atomic_partitioner.hpp" />
     <ClInclude Include="..\..\include\oqpi\parallel_algorithms\base_partitioner.hpp" />
     <ClInclude Include="..\..\include\oqpi\parallel_algorithms\parallel_for.hpp" />
     <ClInclude Include="..\..\include\oqpi\parallel_algorithms\simple_partitioner.hpp" />

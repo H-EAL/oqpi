@@ -161,6 +161,9 @@
     <ClInclude Include="..\..\include\oqpi\scheduling\task_result.hpp">
       <Filter>include\scheduling\_tasks</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\parallel_algorithms\atomic_partitioner.hpp">
+      <Filter>include\parallel_algorithms\_partitioners</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="oqpi.natvis" />

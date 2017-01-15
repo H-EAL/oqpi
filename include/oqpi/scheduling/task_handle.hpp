@@ -28,8 +28,8 @@ namespace oqpi {
         
         //------------------------------------------------------------------------------------------
         // Construct a valid handle by taking a shared pointer to a task
-        template<task_type _TaskType, typename _TaskContext, typename _Func>
-        task_handle(std::shared_ptr<task<_TaskType, _TaskContext, _Func>> spTask)
+        template<task_type _TaskType, typename _EventType, typename _TaskContext, typename _Func>
+        task_handle(std::shared_ptr<task<_TaskType, _EventType, _TaskContext, _Func>> spTask)
             : spTask_(std::move(spTask))
         {}
 

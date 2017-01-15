@@ -135,14 +135,14 @@ namespace oqpi { namespace itfc {
         struct launcher
         {
             launcher(const thread_attributes &attributes, _Tuple &&t)
-                : tuple_(std::move(t))
-                , attributes_(attributes)
+                : attributes_(attributes)
+                , tuple_(std::move(t))
             {}
 
             inline void operator()()
             {
-                this_thread::set_name(attributes_.name_.c_str());
-                run(std::make_integer_sequence<size_t, std::tuple_size<typename _Tuple>::value>());
+                thread_impl::set_name(thread_impl::get_current_thread_id(), attributes_.name_.c_str());
+                run(std::make_integer_sequence<size_t, std::tuple_size<_Tuple>::value>());
             }
 
             template<size_t... _Indices>

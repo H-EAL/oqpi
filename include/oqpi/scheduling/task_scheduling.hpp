@@ -1,18 +1,30 @@
 #pragma once
 
+#include "oqpi/synchronization/event.hpp"
 #include "oqpi/scheduling/task.hpp"
 #include "oqpi/scheduling/task_type.hpp"
 #include "oqpi/scheduling/task_handle.hpp"
 #include "oqpi/scheduling/parallel_group.hpp"
 #include "oqpi/scheduling/sequence_group.hpp"
+#include "oqpi/parallel_algorithms/parallel_for.hpp"
+
 
 namespace oqpi {
 
-    template<typename _Scheduler, typename _DefaultGroupContext = empty_group_context, typename _DefaultTaskContext = empty_task_context>
+    template
+    <
+          typename _Scheduler
+        // The context to use for making groups
+        , typename _DefaultGroupContext = empty_group_context
+        // The context to use for making tasks
+        , typename _DefaultTaskContext  = empty_task_context
+        // Type of events used for notification when a task is done
+        , typename _EventType           = manual_reset_event_interface<>
+    >
     struct helpers
     {
         //------------------------------------------------------------------------------------------
-        using self_type = helpers<_Scheduler, _DefaultGroupContext, _DefaultTaskContext>;
+        using self_type = helpers<_Scheduler, _DefaultGroupContext, _DefaultTaskContext, _EventType>;
 
 
         //------------------------------------------------------------------------------------------
@@ -42,7 +54,7 @@ namespace oqpi {
         template<task_type _TaskType, typename _TaskContext, typename _Func, typename... _Args>
         inline static task_handle schedule_task(const std::string &name, task_priority prio, _Func &&f, _Args &&...args)
         {
-            return self_type::schedule_task(make_task<_TaskType, _TaskContext>(name, prio, std::forward<_Func>(f), std::forward<_Args>(args)...));
+            return self_type::schedule_task(make_task<_TaskType, _EventType, _TaskContext>(name, prio, std::forward<_Func>(f), std::forward<_Args>(args)...));
         }
 
         //------------------------------------------------------------------------------------------
@@ -90,7 +102,7 @@ namespace oqpi {
         template<task_type _TaskType, typename _TaskContext, typename _Func, typename... _Args>
         inline static auto make_task(const std::string &name, task_priority priority, _Func &&func, _Args &&...args)
         {
-            return oqpi::make_task<_TaskType, _TaskContext>(name, priority, std::forward<_Func>(func), std::forward<_Args>(args)...);
+            return oqpi::make_task<_TaskType, _EventType, _TaskContext>(name, priority, std::forward<_Func>(func), std::forward<_Args>(args)...);
         }
         //------------------------------------------------------------------------------------------
         // Type     : user defined
@@ -188,7 +200,7 @@ namespace oqpi {
         template<task_type _TaskType, typename _GroupContext, typename _TaskContext, typename _Func, typename _Partitioner>
         inline static auto make_parallel_for_task_group(const std::string &name, const _Partitioner &partitioner, task_priority prio, _Func &&func)
         {
-            return oqpi::make_parallel_for_task_group<_TaskType, _GroupContext, _TaskContext>(scheduler_, name, partitioner, prio, std::forward<_Func>(func));
+            return oqpi::make_parallel_for_task_group<_TaskType, _EventType, _GroupContext, _TaskContext>(scheduler_, name, partitioner, prio, std::forward<_Func>(func));
         }
 
         //------------------------------------------------------------------------------------------
@@ -204,25 +216,75 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         // Group Context    : user defined
         // Task Context     : user defined
+        // Partitioner      : user defined
+        // Priority         : user defined
         template<typename _GroupContext, typename _TaskContext, typename _Func, typename _Partitioner>
         inline static void parallel_for(const std::string &name, const _Partitioner &partitioner, task_priority prio, _Func &&func)
         {
-            oqpi::parallel_for<_GroupContext, _TaskContext>(scheduler_, name, partitioner, prio, std::forward<_Func>(func));
+            oqpi::parallel_for<_EventType, _GroupContext, _TaskContext>(scheduler_, name, partitioner, prio, std::forward<_Func>(func));
+        }
+
+        //------------------------------------------------------------------------------------------
+        // Group Context    : user defined
+        // Task Context     : user defined
+        // Partitioner      : simple_partitioner
+        // Priority         : normal
+        template<typename _GroupContext, typename _TaskContext, typename _Func>
+        inline static void parallel_for(const std::string &name, int32_t firstIndex, int32_t lastIndex, _Func &&func)
+        {
+            const auto priority     = task_priority::normal;
+            const auto partitioner  = oqpi::simple_partitioner(firstIndex, lastIndex, scheduler_.workersCount(priority));
+            self_type::parallel_for<_GroupContext, _TaskContext>(name, partitioner, priority, std::forward<_Func>(func));
+        }
+
+        //------------------------------------------------------------------------------------------
+        // Group Context    : user defined
+        // Task Context     : user defined
+        // Partitioner      : simple_partitioner
+        // Priority         : normal
+        template<typename _GroupContext, typename _TaskContext, typename _Func>
+        inline static void parallel_for(const std::string &name, int32_t elementCount, _Func &&func)
+        {
+            self_type::parallel_for<_GroupContext, _TaskContext>(name, 0, elementCount, std::forward<_Func>(func));
         }
 
         //------------------------------------------------------------------------------------------
         // Group Context    : default
         // Task Context     : default
+        // Partitioner      : user defined
+        // Priority         : user defined
         template<typename _Func, typename _Partitioner>
         inline static void parallel_for(const std::string &name, const _Partitioner &partitioner, task_priority prio, _Func &&func)
         {
             self_type::parallel_for<_DefaultGroupContext, _DefaultTaskContext>(name, partitioner, prio, std::forward<_Func>(func));
         }
+
+        //------------------------------------------------------------------------------------------
+        // Group Context    : default
+        // Task Context     : default
+        // Partitioner      : simple_partitioner
+        // Priority         : normal
+        template<typename _Func>
+        inline static void parallel_for(const std::string &name, int32_t firstIndex, int32_t lastIndex, _Func &&func)
+        {
+            self_type::parallel_for<_DefaultGroupContext, _DefaultTaskContext>(name, firstIndex, lastIndex, std::forward<_Func>(func));
+        }
+
+        //------------------------------------------------------------------------------------------
+        // Group Context    : default
+        // Task Context     : default
+        // Partitioner      : simple_partitioner
+        // Priority         : normal
+        template<typename _Func>
+        inline static void parallel_for(const std::string &name, int32_t elementCount, _Func &&func)
+        {
+            self_type::parallel_for(name, 0, elementCount, std::forward<_Func>(func));
+        }
     };
 
     //----------------------------------------------------------------------------------------------
-    template<typename _Scheduler, typename _DefaultGroupContext, typename _DefaultTaskContext>
-    _Scheduler helpers<_Scheduler, _DefaultGroupContext, _DefaultTaskContext>::scheduler_;
+    template<typename _Scheduler, typename _DefaultGroupContext, typename _DefaultTaskContext, typename _EventType>
+    _Scheduler helpers<_Scheduler, _DefaultGroupContext, _DefaultTaskContext, _EventType>::scheduler_;
     //----------------------------------------------------------------------------------------------
 
 } /*oqpi*/

@@ -11,15 +11,15 @@ namespace oqpi {
     // It provides 2 functions: wait() and notify().
     // Inheriting from the right specialization will ensure that only waitable tasks instantiate
     // a synchronization object.
-    template<task_type _TaskType>
+    template<task_type _TaskType, typename _EventType = manual_reset_event_interface<>>
     class notifier;
     //----------------------------------------------------------------------------------------------
 
 
     //----------------------------------------------------------------------------------------------
     // Nothing to notify or wait for, for a fire_and_forget task
-    template<>
-    class notifier<task_type::fire_and_forget>
+    template<typename _EventType>
+    class notifier<task_type::fire_and_forget, _EventType>
     {
     protected:
         //------------------------------------------------------------------------------------------
@@ -34,11 +34,11 @@ namespace oqpi {
 
     //----------------------------------------------------------------------------------------------
     // Waitable tasks have a manual reset event to notify/wait on
-    template<>
-    class notifier<task_type::waitable>
+    template<typename _EventType>
+    class notifier<task_type::waitable, _EventType>
     {
         //------------------------------------------------------------------------------------------
-        using self_type = notifier<task_type::waitable>;
+        using self_type = notifier<task_type::waitable, _EventType>;
 
     protected:
         //------------------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ namespace oqpi {
 
     private:
         // Done event
-        manual_reset_event_interface<> event_;
+        _EventType event_;
     };
     //----------------------------------------------------------------------------------------------
 

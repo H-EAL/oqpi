@@ -202,7 +202,7 @@ public:
             infos.push_back(&tasks.find(c.getUID())->second);
             totalDuration += infos.back()->duration_;
         }
-        return std::move(infos);
+        return infos;
     }
 
     void reset()

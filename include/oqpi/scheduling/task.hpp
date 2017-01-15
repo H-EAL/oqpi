@@ -7,18 +7,18 @@
 
 namespace oqpi {
 
-    template<task_type _TaskType, typename _TaskContext, typename _Func>
+    template<task_type _TaskType, typename _EventType, typename _TaskContext, typename _Func>
     class task final
         : public task_base
         , public task_result<typename std::result_of<_Func()>::type>
-        , public notifier<_TaskType>
+        , public notifier<_TaskType, _EventType>
         , public _TaskContext
     {
         //------------------------------------------------------------------------------------------
-        using self_type         = task<_TaskType, _TaskContext, _Func>;
+        using self_type         = task<_TaskType, _EventType, _TaskContext, _Func>;
         using return_type       = typename std::result_of<_Func()>::type;
         using task_result_type  = task_result<return_type>;
-        using notifier_type     = notifier<_TaskType>;
+        using notifier_type     = notifier<_TaskType, _EventType>;
 
     public:
         //------------------------------------------------------------------------------------------
@@ -142,7 +142,7 @@ namespace oqpi {
     //----------------------------------------------------------------------------------------------
     // Type     : user defined
     // Context  : user defined
-    template<task_type _TaskType, typename _TaskContext, typename _Func, typename... _Args>
+    template<task_type _TaskType, typename _EventType, typename _TaskContext, typename _Func, typename... _Args>
     inline auto make_task(const std::string &name, task_priority priority, _Func &&func, _Args &&...args)
     {
         const auto f = [func = std::forward<_Func>(func), &args...]
@@ -150,7 +150,7 @@ namespace oqpi {
             return func(std::forward<_Args>(args)...);
         };
 
-        using task_type = task<_TaskType, _TaskContext, std::decay_t<decltype(f)>>;
+        using task_type = task<_TaskType, _EventType, _TaskContext, std::decay_t<decltype(f)>>;
         return std::make_shared<task_type>
         (
             name,

@@ -215,13 +215,11 @@ void test_parallel_for()
     std::cout << "-------------------------------------------------------------------" << std::endl;
     std::cout << __FUNCTION__ << std::endl;
     std::cout << "-------------------------------------------------------------------" << std::endl;
-    const auto prio = oqpi::task_priority::normal;
-    const auto partitioner = oqpi::simple_partitioner(gTaskCount, oqpi_tk::scheduler().workersCount(prio));
-    oqpi_tk::parallel_for("FibonacciParallelFor", partitioner, prio,
-        [](int32_t)
+    oqpi_tk::parallel_for("FibonacciParallelFor", gTaskCount, [](int32_t i)
     {
         volatile auto a = 0ull;
         a += fibonacci(gValue + a);
+        a += i;
     });
     timing_registry::get().dump();
 

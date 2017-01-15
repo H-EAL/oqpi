@@ -54,7 +54,7 @@ namespace oqpi {
 
 
     //----------------------------------------------------------------------------------------------
-    template<task_type _TaskType, typename _GroupContext, typename _TaskContext, typename _Scheduler, typename _Function, typename _Partitioner>
+    template<task_type _TaskType, typename _EventType, typename _GroupContext, typename _TaskContext, typename _Scheduler, typename _Function, typename _Partitioner>
     inline auto make_parallel_for_task_group(_Scheduler &sc, const std::string &name, const _Partitioner &partitioner, task_priority prio, _Function &&func)
     {
         if (!partitioner.isValid())
@@ -71,7 +71,7 @@ namespace oqpi {
         for (auto batchIndex = 0; batchIndex < nbBatches; ++batchIndex)
         {
             const auto &taskName = "Batch " + std::to_string(batchIndex + 1) + "/" + std::to_string(nbBatches);
-            auto taskHandle = make_task<task_type::fire_and_forget, _TaskContext>(taskName, prio,
+            auto taskHandle = make_task<task_type::fire_and_forget, _EventType, _TaskContext>(taskName, prio,
                 [batchIndex, func, spPartitioner]()
             {
                 int32_t first = 0;
@@ -94,10 +94,10 @@ namespace oqpi {
 
 
     //----------------------------------------------------------------------------------------------
-    template<typename _GroupContext, typename _TaskContext, typename _Scheduler, typename _Function, typename _Partitioner>
+    template<typename _EventType, typename _GroupContext, typename _TaskContext, typename _Scheduler, typename _Function, typename _Partitioner>
     inline void parallel_for(_Scheduler &sc, const std::string &name, const _Partitioner &partitioner, task_priority prio, _Function &&func)
     {
-        auto spTaskGroup = make_parallel_for_task_group<task_type::waitable, _GroupContext, _TaskContext>(sc, name, partitioner, prio, std::forward<_Function>(func));
+        auto spTaskGroup = make_parallel_for_task_group<task_type::waitable, _EventType, _GroupContext, _TaskContext>(sc, name, partitioner, prio, std::forward<_Function>(func));
         if(spTaskGroup)
         {
             sc.add(task_handle(spTaskGroup)).activeWait();

@@ -54,7 +54,8 @@ namespace oqpi {
         template<task_type _TaskType, typename _TaskContext, typename _Func, typename... _Args>
         inline static task_handle schedule_task(const std::string &name, task_priority prio, _Func &&f, _Args &&...args)
         {
-            return self_type::schedule_task(make_task<_TaskType, _EventType, _TaskContext>(name, prio, std::forward<_Func>(f), std::forward<_Args>(args)...));
+            auto spTask = self_type::make_task<_TaskType, _TaskContext>(name, prio, std::forward<_Func>(f), std::forward<_Args>(args)...);
+            return self_type::schedule_task(std::move(spTask));
         }
 
         //------------------------------------------------------------------------------------------
@@ -279,6 +280,48 @@ namespace oqpi {
         inline static void parallel_for(const std::string &name, int32_t elementCount, _Func &&func)
         {
             self_type::parallel_for(name, 0, elementCount, std::forward<_Func>(func));
+        }
+
+
+        //------------------------------------------------------------------------------------------
+        // Group Context    : user defined
+        // Task Context     : user defined
+        // Partitioner      : user defined
+        // Priority         : user defined
+        template<typename _GroupContext, typename _TaskContext, typename _Func, typename _Container, typename _Partitioner>
+        inline static void parallel_for_each(const std::string &name, _Container &container, const _Partitioner &partitioner, task_priority prio, _Func &&func)
+        {
+            self_type::parallel_for<_GroupContext, _TaskContext>(name, partitioner, prio,
+                [&container, func = std::forward<_Func>(func)](int32_t elementIndex)
+            {
+                func(container[elementIndex]);
+            });
+        }
+
+        //------------------------------------------------------------------------------------------
+        // Group Context    : default
+        // Task Context     : default
+        // Partitioner      : user defined
+        // Priority         : user defined
+        template<typename _Func, typename _Container, typename _Partitioner>
+        inline static void parallel_for_each(const std::string &name, _Container &container, const _Partitioner &partitioner, task_priority prio, _Func &&func)
+        {
+            self_type::parallel_for_each<_DefaultGroupContext, _DefaultTaskContext>(name, container, partitioner, prio, std::forward<_Func>(func));
+        }
+
+        //------------------------------------------------------------------------------------------
+        // Group Context    : default
+        // Task Context     : default
+        // Partitioner      : simple_partitioner
+        // Priority         : normal
+        template<typename _Func, typename _Container>
+        inline static void parallel_for_each(const std::string &name, _Container &container, _Func &&func)
+        {
+            self_type::parallel_for(name, 0, int32_t(container.size()),
+                [&container, func = std::forward<_Func>(func)](int32_t elementIndex)
+            {
+                func(container[elementIndex]);
+            });
         }
     };
 

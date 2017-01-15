@@ -229,6 +229,32 @@ void test_parallel_for()
 
 
 //--------------------------------------------------------------------------------------------------
+void test_parallel_for_each()
+{
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    std::cout << __FUNCTION__ << std::endl;
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    std::vector<uint64_t> vec{8,89,23,9999,4454561,354354,231321,5656456,654,654,321,32,654,684,321,565654};
+    std::vector<uint64_t> fib(vec.size());
+
+    auto h = oqpi_tk::schedule_task("FibTransform", oqpi::task_priority::normal, [&vec, &fib]
+    {
+        std::transform(vec.begin(), vec.end(), fib.begin(), [](uint64_t i) { return fibonacci(i); });
+    });
+    h.wait();
+
+    oqpi_tk::parallel_for_each("FibonacciParallelForEach", vec, [](uint64_t &i)
+    {
+        i = fibonacci(i);
+    });
+    timing_registry::get().dump();
+
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    std::cout << std::endl << std::endl;
+}
+
+
+//--------------------------------------------------------------------------------------------------
 void clean_up_environement()
 {
     oqpi::this_thread::sleep_for(500ms);
@@ -256,6 +282,8 @@ int main()
     test_parallel_for();
     oqpi::this_thread::sleep_for(5ms);
     test_parallel_for_task();
+    oqpi::this_thread::sleep_for(5ms);
+    test_parallel_for_each();
     oqpi::this_thread::sleep_for(5ms);
     clean_up_environement();
 }

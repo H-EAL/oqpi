@@ -6,7 +6,7 @@
 #include "oqpi/scheduling/worker.hpp"
 #include "oqpi/scheduling/task_handle.hpp"
 #include "oqpi/scheduling/worker_context.hpp"
-// #include "oqpi/scheduling/task_group_base.h"
+#include "oqpi/scheduling/task_group_base.hpp"
 
 
 namespace oqpi {
@@ -203,7 +203,7 @@ namespace oqpi {
                 {
                     if (w.canWorkOnPriority(task_priority(prio)))
                     {
-                        while (pendingTasks_[prio].try_pop(hTask))
+                        while (pendingTasks_[prio].tryPop(hTask))
                         {
                             // We got a task, try to grab it to ensure that we can work on it
                             // Note that a task_group can be done without being grabbed when calling activeWait

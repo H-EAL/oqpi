@@ -3,31 +3,27 @@
 #include <mutex>
 #include <queue>
 
-template <typename T, typename _Mutex>
-class qqueue
+template <typename T>
+class concurrent_queue
 {
+    using lock_t = std::lock_guard<std::mutex>;
+
 public:
-    qqueue(/*const std::string &name = ""*/)
-        //: mutex_("QueueMutex/" + name)
-    {}
-
-    ~qqueue() = default;
-
     void push(T &&t)
     {
-        std::lock_guard<_Mutex> lock(mutex_);
+        lock_t __l(mutex_);
         queue_.emplace(std::move(t));
     }
 
     void push(const T &t)
     {
-        std::lock_guard<_Mutex> lock(mutex_);
+        lock_t __l(mutex_);
         queue_.emplace(t);
     }
 
-    bool try_pop(typename std::queue<T>::reference v)
+    bool tryPop(typename std::queue<T>::reference v)
     {
-        std::lock_guard<_Mutex> lock(mutex_);
+        lock_t __l(mutex_);
         if (!queue_.empty())
         {
             v = std::move(queue_.front());
@@ -43,6 +39,6 @@ public:
     }
 
 private:
+    std::mutex      mutex_;
     std::queue<T>   queue_;
-    _Mutex          mutex_;
 };

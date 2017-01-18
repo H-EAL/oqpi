@@ -164,6 +164,9 @@
     <ClInclude Include="..\..\include\oqpi\scheduling_helpers.hpp">
       <Filter>include\_utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\concurrent_queue.hpp">
+      <Filter>include\_utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="oqpi.natvis" />

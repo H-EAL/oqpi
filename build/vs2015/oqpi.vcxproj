@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\oqpi.hpp" />
+    <ClInclude Include="..\..\include\oqpi\concurrent_queue.hpp" />
     <ClInclude Include="..\..\include\oqpi\empty_layer.hpp" />
     <ClInclude Include="..\..\include\oqpi\error_handling.hpp" />
     <ClInclude Include="..\..\include\oqpi\parallel_algorithms.hpp" />

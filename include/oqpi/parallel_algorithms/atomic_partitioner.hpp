@@ -13,6 +13,7 @@ namespace oqpi {
     class atomic_partitioner
         : public base_partitioner
     {
+    public:
         //------------------------------------------------------------------------------------------
         atomic_partitioner(int32_t firstIndex, int32_t lastIndex, int32_t indicesToGrab, int32_t maxBatches)
             : base_partitioner(firstIndex, lastIndex, maxBatches)

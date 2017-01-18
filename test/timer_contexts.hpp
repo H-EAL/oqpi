@@ -227,7 +227,7 @@ public:
 
     ~timer_task_context()
     {
-        timing_registry::get().unregisterTask(this->owner()->getUID());
+        //timing_registry::get().unregisterTask(this->owner()->getUID());
     }
 
     inline void onPreExecute()
@@ -256,7 +256,7 @@ public:
 
     ~timer_group_context()
     {
-        timing_registry::get().unregisterTask(this->owner()->getUID());
+        //timing_registry::get().unregisterTask(this->owner()->getUID());
     }
 
     inline void onTaskAdded(const oqpi::task_handle &hTask)

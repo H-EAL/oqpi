@@ -3,7 +3,7 @@
 
 oqpi helps you reach that 100% core occupancy you're aiming for.
 
-# Example
+## Example
 ```cpp
 #define OQPI_DEFAULT
 #include "oqpi.hpp"
@@ -51,5 +51,5 @@ int main()
 }
 ```
 
-# Documentation
+## Documentation
 _Coming soon..._

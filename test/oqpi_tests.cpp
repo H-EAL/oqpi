@@ -8,7 +8,7 @@
 
 using namespace std::chrono_literals;
 
-#define PROFILE_TASKS (1)
+#define PROFILE_TASKS (0)
 //--------------------------------------------------------------------------------------------------
 // Define the toolkit we want to use
 #if PROFILE_TASKS
@@ -70,8 +70,9 @@ void test_unit_task_result()
 {
     TEST_FUNC;
 
-    auto spTask = oqpi_tk::make_task("FibonacciReturnResult", fibonacci, gValue);
+    auto spTask = oqpi_tk::make_task(oqpi_debug_name("FibonacciReturnResult"), fibonacci, gValue);
     oqpi_tk::schedule_task(spTask);
+    oqpi_tk::scheduler().notifyWorkers();
     std::cout << "Fibonacci(" << gValue << ") = " << spTask->waitForResult() << std::endl;
 }
 
@@ -80,7 +81,7 @@ void test_unit_task()
 {
     TEST_FUNC;
 
-    auto spTask = oqpi_tk::make_task("Fibonacci4x", oqpi::task_priority::normal, []
+    auto spTask = oqpi_tk::make_task(oqpi_debug_name("Fibonacci4x"), oqpi::task_priority::normal, []
     {
         for (int i = 0; i < gTaskCount; ++i)
         {
@@ -88,7 +89,9 @@ void test_unit_task()
             a += fibonacci(gValue+a);
         }
     });
-    oqpi_tk::schedule_task(spTask).wait();
+    auto h = oqpi_tk::schedule_task(spTask);
+    oqpi_tk::scheduler().notifyWorkers();
+    h.wait();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -99,8 +102,9 @@ void test_multiple_unit_tasks()
     std::vector<oqpi::task_handle> handles(gTaskCount);
     for (auto i = 0; i < gTaskCount; ++i)
     {
-        handles[i] = oqpi_tk::schedule_task("Fibonacci_" + std::to_string(i), fibonacci, gValue);
+        handles[i] = oqpi_tk::schedule_task(oqpi_debug_name("Fibonacci_" + std::to_string(i)), fibonacci, gValue);
     }
+    oqpi_tk::scheduler().notifyWorkers();
     for (auto &h : handles)
     {
         h.wait();
@@ -115,10 +119,12 @@ void test_sequence_group()
     auto spSeq = oqpi_tk::make_sequence_group<oqpi::task_type::waitable>("Sequence");
     for (auto i = 0; i < gTaskCount; ++i)
     {
-        auto spTask = oqpi_tk::make_task_item("FibonacciSeq" + std::to_string(i), fibonacci, gValue);
+        auto spTask = oqpi_tk::make_task_item(oqpi_debug_name("FibonacciSeq" + std::to_string(i)), fibonacci, gValue);
         spSeq->addTask(spTask);
     }
-    oqpi_tk::schedule_task(oqpi::task_handle(spSeq)).wait();
+    auto h = oqpi_tk::schedule_task(oqpi::task_handle(spSeq));
+    oqpi_tk::scheduler().notifyWorkers();
+    h.wait();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -129,10 +135,12 @@ void test_parallel_group()
     auto spFork = oqpi_tk::make_parallel_group<oqpi::task_type::waitable>("Fork", oqpi::task_priority::normal, gTaskCount);
     for (auto i = 0; i < gTaskCount; ++i)
     {
-        auto spTask = oqpi_tk::make_task_item("FibonacciFork" + std::to_string(i), fibonacci, gValue);
+        auto spTask = oqpi_tk::make_task_item(oqpi_debug_name("FibonacciFork" + std::to_string(i)), fibonacci, gValue);
         spFork->addTask(spTask);
     }
-    oqpi_tk::schedule_task(oqpi::task_handle(spFork)).wait();
+    auto h = oqpi_tk::schedule_task(oqpi::task_handle(spFork));
+    oqpi_tk::scheduler().notifyWorkers();
+    h.wait();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -146,12 +154,14 @@ void test_sequence_of_parallel_groups()
         auto spFork = oqpi_tk::make_parallel_group<oqpi::task_type::fire_and_forget>("Fork" + std::to_string(i), oqpi::task_priority::normal, gTaskCount);
         for (auto j = 0; j < gTaskCount; ++j)
         {
-            auto spTask = oqpi_tk::make_task_item("Fibonacci_" + std::to_string(i*10+j), oqpi::task_priority::normal, fibonacci, gValue);
+            auto spTask = oqpi_tk::make_task_item(oqpi_debug_name("Fibonacci_" + std::to_string(i*10+j)), oqpi::task_priority::normal, fibonacci, gValue);
             spFork->addTask(spTask);
         }
         spSeq->addTask(oqpi::task_handle(spFork));
     }
-    oqpi_tk::schedule_task(oqpi::task_handle(spSeq)).wait();
+    auto h = oqpi_tk::schedule_task(oqpi::task_handle(spSeq));
+    oqpi_tk::scheduler().notifyWorkers();
+    h.wait();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -161,14 +171,16 @@ void test_parallel_for_task()
 
     const auto prio = oqpi::task_priority::normal;
     const auto partitioner = oqpi::simple_partitioner(gTaskCount, oqpi_tk::scheduler().workersCount(prio));
-    auto spParallelForGroup = oqpi_tk::make_parallel_for_task_group<oqpi::task_type::waitable>("FibonacciParallelForGroup", partitioner, prio,
+    auto spParallelForGroup = oqpi_tk::make_parallel_for_task_group<oqpi::task_type::waitable>(oqpi_debug_name("FibonacciParallelForGroup"), partitioner, prio,
         [](int32_t i)
     {
         volatile auto a = 0ull;
         a += fibonacci(gValue + a);
         a += i;
     });
-    oqpi_tk::schedule_task(oqpi::task_handle(spParallelForGroup)).wait();
+    auto h = oqpi_tk::schedule_task(oqpi::task_handle(spParallelForGroup));
+    oqpi_tk::scheduler().notifyWorkers();
+    h.wait();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -176,7 +188,7 @@ void test_parallel_for()
 {
     TEST_FUNC;
 
-    oqpi_tk::parallel_for("FibonacciParallelFor", gTaskCount, [](int32_t i)
+    oqpi_tk::parallel_for(oqpi_debug_name("FibonacciParallelFor"), gTaskCount, [](int32_t i)
     {
         volatile auto a = 0ull;
         a += fibonacci(gValue + a);
@@ -214,7 +226,7 @@ void test_parallel_for_each()
     const auto vecSize = int32_t(vec.size());
     std::atomic<uint64_t> count = 0;
 
-    oqpi_tk::parallel_for_each("FibonacciParallelForEach", vec,
+    oqpi_tk::parallel_for_each(oqpi_debug_name("FibonacciParallelForEach"), vec,
         [&count](const std::string &s)
     {
         uint64_t total = 0;
@@ -245,11 +257,12 @@ void test_partitioners()
     {
         std::transform(vec.begin(), vec.end(), fib.begin(), [](uint64_t i) { return fibonacci(i); });
     });
+    oqpi_tk::scheduler().notifyWorkers();
     h.wait();
 
     const auto prio = oqpi::task_priority::normal;
     const auto simplePartitioner = oqpi::simple_partitioner(vecSize, oqpi_tk::scheduler().workersCount(prio));
-    oqpi_tk::parallel_for_each("FibonacciParallelForEach", vec, simplePartitioner, prio,
+    oqpi_tk::parallel_for_each(oqpi_debug_name("FibonacciParallelForEachSimplePartitioner"), vec, simplePartitioner, prio,
         [](uint64_t &i)
     {
         volatile auto a = 0ull;
@@ -257,7 +270,7 @@ void test_partitioners()
     });
 
     const auto atomicPartitioner = oqpi::atomic_partitioner(vecSize, 1, oqpi_tk::scheduler().workersCount(prio));
-    oqpi_tk::parallel_for_each("FibonacciParallelForEach", vec, atomicPartitioner, prio,
+    oqpi_tk::parallel_for_each(oqpi_debug_name("FibonacciParallelForEachAtomicPartitioner"), vec, atomicPartitioner, prio,
         [](uint64_t &i)
     {
         volatile auto a = 0ull;
@@ -270,7 +283,8 @@ void test_partitioners()
 int main()
 {
     oqpi_tk::start_default_scheduler();
-
+    while(true)
+    {
     test_unit_task_result();
 
     test_unit_task();
@@ -290,6 +304,7 @@ int main()
     test_parallel_for_each();
 
     test_partitioners();
+    }
 
     oqpi_tk::stop_scheduler();
 }

@@ -151,6 +151,13 @@ namespace oqpi {
             validate();
             return spTask_->getUID();
         }
+        
+        //------------------------------------------------------------------------------------------
+        bool onAddedToScheduler()
+        {
+            validate();
+            return spTask_->onAddedToScheduler();
+        }
 
     private:
         //------------------------------------------------------------------------------------------

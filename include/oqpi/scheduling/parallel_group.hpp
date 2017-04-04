@@ -30,7 +30,7 @@ namespace oqpi {
             : task_group<_Scheduler, _TaskType, _GroupContext>(sc, name, priority)
             , activeTasksCount_(0)
             , maxSimultaneousTasks_(maxSimultaneousTasks)
-            , currentTaskIndex_(1)
+            , currentTaskIndex_(0)
         {
             tasks_.reserve(taskCount);
         }
@@ -75,6 +75,32 @@ namespace oqpi {
             this->wait();
         }
 
+        //------------------------------------------------------------------------------------------
+        virtual bool onAddedToScheduler() override final
+        {
+            const auto taskCount = tasks_.size();
+            if (oqpi_ensuref(taskCount > 0, "Trying to execute an empty group"))
+            {
+//                 size_t i = 0;
+//                 int32_t scheduledTasks = 0;
+// 
+//                 while ((i = currentTaskIndex_.fetch_add(1)) < taskCount)
+//                 {
+//                     if (!tasks_[i].isGrabbed() && !tasks_[i].isDone())
+//                     {
+//                         this->scheduler_.add(tasks_[i]);
+//                         if (maxSimultaneousTasks_ > 0 && ++scheduledTasks >= maxSimultaneousTasks_ - 1)
+//                         {
+//                             break;
+//                         }
+//                     }
+//                 }
+                this->scheduler_.add(this->getPriority(), tasks_.begin(), maxSimultaneousTasks_ > 0 ? maxSimultaneousTasks_ : taskCount);
+                this->scheduler_.notifyWorkers();
+            }
+            return false;
+        }
+
     protected:
         //------------------------------------------------------------------------------------------
         virtual void addTaskImpl(const task_handle &hTask) override final
@@ -86,29 +112,32 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         virtual void executeImpl() override final
         {
-            const auto taskCount = tasks_.size();
-            if (oqpi_ensuref(taskCount > 0, "Trying to execute an empty group"))
-            {
-                size_t i = 0;
-                int32_t scheduledTasks = 0;
-
-                while ((i = currentTaskIndex_.fetch_add(1)) < taskCount)
-                {
-                    if (!tasks_[i].isGrabbed() && !tasks_[i].isDone())
-                    {
-                        this->scheduler_.add(tasks_[i]);
-                        if (maxSimultaneousTasks_ > 0 && ++scheduledTasks >= maxSimultaneousTasks_-1)
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                if (tasks_[0].tryGrab())
-                {
-                    tasks_[0].execute();
-                }
-            }
+            oqpi_check(false);
+            return;
+//             const auto taskCount = tasks_.size();
+//             if (oqpi_ensuref(taskCount > 0, "Trying to execute an empty group"))
+//             {
+//                 size_t i = 0;
+//                 int32_t scheduledTasks = 0;
+// 
+//                 while ((i = currentTaskIndex_.fetch_add(1)) < taskCount)
+//                 {
+//                     if (!tasks_[i].isGrabbed() && !tasks_[i].isDone())
+//                     {
+//                         this->scheduler_.add(tasks_[i]);
+//                         if (maxSimultaneousTasks_ > 0 && ++scheduledTasks >= maxSimultaneousTasks_-1)
+//                         {
+//                             break;
+//                         }
+//                     }
+//                 }
+//                 this->scheduler_.notifyWorkers();
+// 
+//                 if (tasks_[0].tryGrab())
+//                 {
+//                     tasks_[0].execute();
+//                 }
+//             }
         }
 
         //------------------------------------------------------------------------------------------
@@ -131,6 +160,7 @@ namespace oqpi {
                         break;
                     }
                 }
+                this->scheduler_.notifyWorkers();
             }
         }
 

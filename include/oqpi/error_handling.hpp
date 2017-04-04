@@ -9,9 +9,13 @@
 #if _DEBUG
 #   define OQPI_ENABLE_CHECKS   (1)
 #   define OQPI_ENABLE_LOGS     (1)
+#   define oqpi_debug_name(n)   (n)
+#   define oqpi_name_param(n)   (n)
 #else
 #   define OQPI_ENABLE_CHECKS   (0)
 #   define OQPI_ENABLE_LOGS     (1)
+#   define oqpi_debug_name(n)   ("")
+#   define oqpi_name_param(n)
 #endif
 
 #if OQPI_ENABLE_CHECKS

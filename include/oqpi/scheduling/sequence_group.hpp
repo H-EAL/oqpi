@@ -48,6 +48,16 @@ namespace oqpi {
             }
         }
 
+        //------------------------------------------------------------------------------------------
+        virtual bool onAddedToScheduler() override final
+        {
+            if (!empty())
+            {
+                this->scheduler_.add(popTask());
+            }
+            return false;
+        }
+
 
     protected:
         //------------------------------------------------------------------------------------------
@@ -73,6 +83,7 @@ namespace oqpi {
             if (!empty())
             {
                 this->scheduler_.add(popTask());
+                this->scheduler_.notifyWorkers();
             }
             else
             {

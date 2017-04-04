@@ -1,8 +1,8 @@
 #pragma once
 
 // Define every supported platform to 0 so it can be used in #if statements
-#define OQPI_PLATFORM_WIN	(0)
-#define OQPI_PLATFORM_POSIX	(0)
+#define OQPI_PLATFORM_WIN	    (0)
+#define OQPI_PLATFORM_POSIX	    (0)
 
 // Define only the current platform to 1
 #if defined(_WIN32)
@@ -15,3 +15,6 @@
 #	undef  OQPI_PLATFORM_POSIX
 #	define OQPI_PLATFORM_POSIX	(1)
 #endif
+
+// Cache line size to avoid false sharing
+#define OQPI_CACHE_LINE_SIZE    (64)

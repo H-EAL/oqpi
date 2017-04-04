@@ -42,8 +42,8 @@ namespace oqpi {
 
     protected:
         //------------------------------------------------------------------------------------------
-        notifier(task_uid uid)
-            : event_("Notifier/" + std::to_string(uid))
+        notifier(task_uid oqpi_name_param(uid))
+            : event_(oqpi_debug_name("Notifier/" + std::to_string(uid)))
         {}
 
         //------------------------------------------------------------------------------------------

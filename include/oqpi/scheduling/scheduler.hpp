@@ -153,11 +153,25 @@ namespace oqpi {
         {
             if (hTask.isValid() && !hTask.isGrabbed() && !hTask.isDone())
             {
-                const auto priority = resolveTaskPriority(hTask);
-                pendingTasks_[int(priority)].push(hTask);
-                wakeUpWorkersWithPriority(priority);
+                if (hTask.onAddedToScheduler())
+                {
+                    const auto priority = resolveTaskPriority(hTask);
+                    pendingTasks_[int(priority)].push(hTask);
+                }
+                //wakeUpWorkersWithPriority(priority);
             }
             return hTask;
+        }
+
+        template<typename _It>
+        void add(task_priority prio, _It it, size_t count)
+        {
+            pendingTasks_[int(prio)].push(it, count);
+        }
+
+        void notifyWorkers()
+        {
+            wakeUpAllWorkers();
         }
 
     private:

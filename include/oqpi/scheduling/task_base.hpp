@@ -2,7 +2,6 @@
 
 #include <atomic>
 #include <memory>
-#include <string>
 #include "oqpi/scheduling/task_type.hpp"
 
 
@@ -78,6 +77,9 @@ namespace oqpi {
         virtual void executeSingleThreaded()    = 0;
         virtual void wait() const               = 0;
         virtual void activeWait()               = 0;
+
+        // Optimization for parallel groups
+        virtual bool onAddedToScheduler()       { return true; }
 
     protected:
         virtual void onParentGroupSet()         = 0;

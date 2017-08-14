@@ -42,6 +42,7 @@ namespace oqpi {
 
         //------------------------------------------------------------------------------------------
         // Start the scheduler with a default workers configuration
+        template<typename _WorkerContext = empty_worker_context>
         inline static void start_default_scheduler()
         {
             // Use the default thread and semaphore (without any layer)
@@ -60,7 +61,7 @@ namespace oqpi {
             // Start as many workers as there are cores.
             config.count                                = default_thread::hardware_concurrency();
 
-            scheduler_.registerWorker<default_thread, default_semaphore>(config);
+            scheduler_.registerWorker<default_thread, default_semaphore, _WorkerContext>(config);
             // Fire it up!
             scheduler_.start();
         }

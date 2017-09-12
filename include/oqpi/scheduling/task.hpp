@@ -1,5 +1,7 @@
 #pragma once
 
+#include <tuple>
+
 #include "oqpi/scheduling/task_base.hpp"
 #include "oqpi/scheduling/task_result.hpp"
 #include "oqpi/scheduling/task_notifier.hpp"
@@ -145,9 +147,9 @@ namespace oqpi {
     template<task_type _TaskType, typename _EventType, typename _TaskContext, typename _Func, typename... _Args>
     inline auto make_task(const std::string &name, task_priority priority, _Func &&func, _Args &&...args)
     {
-        const auto f = [func = std::forward<_Func>(func), &args...]
+        const auto f = [func = std::forward<_Func>(func), args = std::make_tuple(std::forward<_Args>(args)...)]
         {
-            return func(std::forward<_Args>(args)...);
+            return std::apply(func, args);
         };
 
         using task_type = task<_TaskType, _EventType, _TaskContext, std::decay_t<decltype(f)>>;

@@ -5,3 +5,4 @@ tmp/
 *.sdf
 bin/
 *.user
+build/vs2017/.vs/

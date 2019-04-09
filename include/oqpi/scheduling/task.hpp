@@ -147,7 +147,7 @@ namespace oqpi {
     template<task_type _TaskType, typename _EventType, typename _TaskContext, typename _Func, typename... _Args>
     inline auto make_task(const std::string &name, task_priority priority, _Func &&func, _Args &&...args)
     {
-        const auto f = [func = std::forward<_Func>(func), args = std::make_tuple(std::forward<_Args>(args)...)]
+        auto f = [func = std::forward<_Func>(func), args = std::make_tuple(std::forward<_Args>(args)...)] () mutable
         {
             return std::apply(func, args);
         };

@@ -6,6 +6,53 @@
 namespace oqpi { namespace itfc {
 
     //----------------------------------------------------------------------------------------------
+    template<typename _Impl>
+    class local_event
+        : protected _Impl
+    {
+    protected:
+        //------------------------------------------------------------------------------------------
+        local_event()
+            : _Impl("", false)
+        {}
+
+        //------------------------------------------------------------------------------------------
+        local_event(const std::string &, bool)
+            : local_event()
+        {}
+    };
+
+
+    //----------------------------------------------------------------------------------------------
+    template<typename _Impl>
+    class global_event
+        : protected _Impl
+    {
+    protected:
+        //------------------------------------------------------------------------------------------
+        global_event()
+            : _Impl("", false)
+        {
+            static_assert(false, "You must name the global event.");
+        }
+
+        //------------------------------------------------------------------------------------------
+        global_event(const std::string &name, bool openExisting)
+            : _Impl(name, openExisting)
+            , name_(name)
+        {}
+
+    public:
+        //------------------------------------------------------------------------------------------
+        const auto& getName() const { return name_; }
+
+    private:
+        //------------------------------------------------------------------------------------------
+        std::string name_;
+    };
+
+
+    //----------------------------------------------------------------------------------------------
     template
     <
         // Platform specific implementation for events
@@ -19,18 +66,30 @@ namespace oqpi { namespace itfc {
     public:
         //------------------------------------------------------------------------------------------
         // Whether the event has augmented layer(s) or not
-        static constexpr auto is_lean = is_empty_layer<_Layer>::value;
+        static constexpr auto is_lean   = is_empty_layer<_Layer>::value;
         // The platform specific implementation
-        using event_impl = _Impl;
+        using event_impl                = _Impl;
         // The actual base type taking into account the presence or absence of augmentation layer(s)
-        using base_type = typename std::conditional<is_lean, event_impl, _Layer<event_impl>>::type;
+        using base_type                 = std::conditional_t<is_lean, event_impl, _Layer<event_impl>>;
         // The actual type
-        using self_type = event<event_impl, _Layer>;
+        using self_type                 = event<event_impl, _Layer>;
+        // Native handle
+        using native_handle_type        = typename event_impl::native_handle_type;
 
     public:
         //------------------------------------------------------------------------------------------
-        explicit event(const std::string &name = "")
-            : base_type(name)
+        explicit event()
+            : base_type()
+        {}
+
+        //------------------------------------------------------------------------------------------
+        explicit event(const std::string &name)
+            : base_type(name, false)
+        {}
+
+        //------------------------------------------------------------------------------------------
+        explicit event(const std::string &name, bool openExisting)
+            : base_type(name, openExisting)
         {}
 
     public:
@@ -58,9 +117,10 @@ namespace oqpi { namespace itfc {
     public:
         //------------------------------------------------------------------------------------------
         // User interface
-        inline void notify()        { return base_type::notify(); }
-        inline void wait() const    { return base_type::wait(); }
-        inline void reset()         { return base_type::reset(); }
+        native_handle_type  getNativeHandle()   const   { return base_type::getNativeHandle();  }
+        inline void         notify()                    { return base_type::notify();           }
+        inline void         wait()              const   { return base_type::wait();             }
+        inline void         reset()                     { return base_type::reset();            }
 
         //------------------------------------------------------------------------------------------
         template<typename _Rep, typename _Period>

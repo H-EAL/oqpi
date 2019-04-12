@@ -19,26 +19,42 @@ namespace oqpi {
     //----------------------------------------------------------------------------------------------
     template<typename _ResetPolicy>
     class win_event
-        : public _ResetPolicy
+        : protected _ResetPolicy
     {
     protected:
-        explicit win_event(const std::string &)
+        //------------------------------------------------------------------------------------------
+        using native_handle_type = HANDLE;
+
+    protected:
+        //------------------------------------------------------------------------------------------
+        win_event(const std::string &name, bool openExisting)
             : handle_(nullptr)
         {
             const auto bManualReset  = BOOL{ _ResetPolicy::is_manual_reset_enabled() };
             const auto bInitialState = BOOL{ FALSE };
-            handle_ = CreateEventA(nullptr, bManualReset, bInitialState, nullptr);
+
+            if (openExisting)
+            {
+                oqpi_check(!name.empty());
+                handle_ = OpenEventA(EVENT_ALL_ACCESS, FALSE, name.c_str());
+            }
+            else
+            {
+                handle_ = CreateEventA(nullptr, bManualReset, bInitialState, name.empty() ? nullptr : name.c_str());
+                oqpi_check(GetLastError() != ERROR_ALREADY_EXISTS);
+            }
 
             oqpi_check(handle_ != nullptr);
-            oqpi_check(GetLastError() != ERROR_ALREADY_EXISTS);
         }
 
+        //------------------------------------------------------------------------------------------
         win_event(win_event &&rhs)
             : handle_(rhs.handle_)
         {
             rhs.handle_ = nullptr;
         }
 
+        //------------------------------------------------------------------------------------------
         ~win_event()
         {
             if (handle_)
@@ -48,6 +64,7 @@ namespace oqpi {
             }
         }
 
+        //------------------------------------------------------------------------------------------
         win_event& operator =(win_event &&rhs)
         {
             if (this != &rhs)
@@ -59,22 +76,32 @@ namespace oqpi {
         }
 
     protected:
+        //------------------------------------------------------------------------------------------
         // User interface
+        native_handle_type getNativeHandle() const
+        {
+            return handle_;
+        }
+
+        //------------------------------------------------------------------------------------------
         void notify()
         {
             oqpi_verify(SetEvent(handle_) == TRUE);
         }
 
+        //------------------------------------------------------------------------------------------
         void wait() const
         {
             internalWait(INFINITE, TRUE);
         }
 
+        //------------------------------------------------------------------------------------------
         void reset()
         {
             _ResetPolicy::reset(handle_);
         }
 
+        //------------------------------------------------------------------------------------------
         template<typename _Rep, typename _Period>
         bool waitFor(const std::chrono::duration<_Rep, _Period>& relTime) const
         {
@@ -83,6 +110,7 @@ namespace oqpi {
         }
 
     private:
+        //------------------------------------------------------------------------------------------
         bool internalWait(DWORD dwMilliseconds, BOOL bAlertable) const
         {
             const auto result = WaitForSingleObjectEx(handle_, dwMilliseconds, bAlertable);
@@ -94,12 +122,14 @@ namespace oqpi {
         }
 
     private:
+        //------------------------------------------------------------------------------------------
         // Not copyable
         win_event(const win_event &)                = delete;
         win_event& operator =(const win_event &)    = delete;
 
     private:
-        HANDLE handle_;
+        //------------------------------------------------------------------------------------------
+        native_handle_type handle_;
     };
     //----------------------------------------------------------------------------------------------
 

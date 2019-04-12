@@ -57,11 +57,7 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         ~win_event()
         {
-            if (handle_)
-            {
-                CloseHandle(handle_);
-                handle_ = nullptr;
-            }
+            close();
         }
 
         //------------------------------------------------------------------------------------------
@@ -84,15 +80,21 @@ namespace oqpi {
         }
 
         //------------------------------------------------------------------------------------------
+        bool isValid() const
+        {
+            return handle_ != nullptr;
+        }
+
+        //------------------------------------------------------------------------------------------
         void notify()
         {
             oqpi_verify(SetEvent(handle_) == TRUE);
         }
 
         //------------------------------------------------------------------------------------------
-        void wait() const
+        bool wait() const
         {
-            internalWait(INFINITE, TRUE);
+            return internalWait(INFINITE, TRUE);
         }
 
         //------------------------------------------------------------------------------------------
@@ -107,6 +109,16 @@ namespace oqpi {
         {
             const auto dwMilliseconds = DWORD(std::chrono::duration_cast<std::chrono::milliseconds>(relTime).count());
             return internalWait(dwMilliseconds, TRUE);
+        }
+
+        //------------------------------------------------------------------------------------------
+        void close()
+        {
+            if (handle_)
+            {
+                CloseHandle(handle_);
+                handle_ = nullptr;
+            }
         }
 
     private:
@@ -142,7 +154,7 @@ namespace oqpi {
             return true;
         }
 
-        void reset(HANDLE &handle)
+        void reset(HANDLE handle)
         {
             oqpi_verify(ResetEvent(handle) != FALSE);
         }

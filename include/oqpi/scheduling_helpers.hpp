@@ -1,6 +1,7 @@
 #pragma once
 
 #include "oqpi/synchronization/event.hpp"
+#include "oqpi/synchronization/semaphore.hpp"
 #include "oqpi/scheduling/task.hpp"
 #include "oqpi/scheduling/scheduler.hpp"
 #include "oqpi/scheduling/task_type.hpp"
@@ -10,6 +11,7 @@
 #include "oqpi/scheduling/parallel_group.hpp"
 #include "oqpi/scheduling/sequence_group.hpp"
 #include "oqpi/parallel_algorithms/parallel_for.hpp"
+#include "oqpi/parallel_algorithms/simple_partitioner.hpp"
 #include "oqpi/concurrent_queue.hpp"
 
 

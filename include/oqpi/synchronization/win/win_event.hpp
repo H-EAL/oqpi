@@ -1,6 +1,7 @@
 #pragma once
 
 #include "oqpi/platform.hpp"
+#include "oqpi/error_handling.hpp"
 
 
 namespace oqpi {

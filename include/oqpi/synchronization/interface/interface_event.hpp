@@ -16,11 +16,11 @@ namespace oqpi { namespace itfc {
     protected:
         //------------------------------------------------------------------------------------------
         local_event()
-            : _Impl("", false)
+            : _Impl("", event_creation_options::open_or_create)
         {}
 
         //------------------------------------------------------------------------------------------
-        local_event(const std::string &, bool)
+        local_event(const std::string &, event_creation_options)
             : local_event()
         {}
     };
@@ -40,8 +40,8 @@ namespace oqpi { namespace itfc {
         }
 
         //------------------------------------------------------------------------------------------
-        global_event(const std::string &name, bool openExisting)
-            : _Impl(name, openExisting)
+        global_event(const std::string &name, event_creation_options creationOption)
+            : _Impl(name, creationOption)
             , name_(name)
         {}
 
@@ -87,12 +87,12 @@ namespace oqpi { namespace itfc {
 
         //------------------------------------------------------------------------------------------
         explicit event(const std::string &name)
-            : base_type(name, false)
+            : base_type(name, event_creation_options::open_or_create)
         {}
 
         //------------------------------------------------------------------------------------------
-        explicit event(const std::string &name, bool openExisting)
-            : base_type(name, openExisting)
+        explicit event(const std::string &name, event_creation_options creationOption)
+            : base_type(name, creationOption)
         {}
 
     public:

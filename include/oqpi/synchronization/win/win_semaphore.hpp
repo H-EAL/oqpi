@@ -14,6 +14,11 @@ namespace oqpi {
     class win_semaphore
     {
     protected:
+        //------------------------------------------------------------------------------------------
+        using native_handle_type = HANDLE;
+
+    protected:
+        //------------------------------------------------------------------------------------------
         explicit win_semaphore(int32_t initCount, int32_t maxCount, const std::string &)
             : initCount_(initCount)
             , maxCount_(maxCount)

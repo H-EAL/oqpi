@@ -76,7 +76,7 @@ namespace oqpi {
         // Interface
         virtual void execute()                  = 0;
         virtual void executeSingleThreaded()    = 0;
-        virtual void wait() const               = 0;
+        virtual void wait()                     = 0;
         virtual void activeWait()               = 0;
 
     protected:

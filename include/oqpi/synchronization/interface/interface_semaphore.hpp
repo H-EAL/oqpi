@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chrono>
+
 #include "oqpi/empty_layer.hpp"
 
 
@@ -19,13 +21,15 @@ namespace oqpi { namespace itfc {
     public:
         //------------------------------------------------------------------------------------------
         // Whether the event has augmented layer(s) or not
-        static constexpr auto is_lean = is_empty_layer<_Layer>::value;
+        static constexpr auto is_lean   = is_empty_layer<_Layer>::value;
         // The platform specific implementation
-        using semaphore_impl = _Impl;
+        using semaphore_impl            = _Impl;
         // The actual base type taking into account the presence or absence of augmentation layer(s)
-        using base_type = typename std::conditional<is_lean, semaphore_impl, _Layer<semaphore_impl>>::type;
+        using base_type                 = typename std::conditional_t<is_lean, semaphore_impl, _Layer<semaphore_impl>>;
         // The actual type
-        using self_type = semaphore<semaphore_impl, _Layer>;
+        using self_type                 = semaphore<semaphore_impl, _Layer>;
+        // Native handle
+        using native_handle_type        = typename semaphore_impl::native_handle_type;
 
     public:
         //------------------------------------------------------------------------------------------
@@ -58,24 +62,25 @@ namespace oqpi { namespace itfc {
     public:
         //------------------------------------------------------------------------------------------
         // User interface
-        void notify(int32_t count)  { return base_type::notify(count);  }
-        void notifyOne()            { return notify(1);                 }
-        void notifyAll()            { return base_type::notifyAll();    }
-        bool tryWait()              { return base_type::tryWait();      }
-        void wait()                 { return base_type::wait();         }
+        native_handle_type  getNativeHandle()       const   { return base_type::getNativeHandle();  }
+        bool                isValid()               const   { return base_type::isValid();          }   
+        void                notify(int32_t count)           { return base_type::notify(count);      }
+        void                notifyOne()                     { return notify(1);                     }
+        void                notifyAll()                     { return base_type::notifyAll();        }
+        bool                tryWait()                       { return base_type::tryWait();          }
+        bool                wait()                          { return base_type::wait();             }
 
         //------------------------------------------------------------------------------------------
         template<typename _Rep, typename _Period>
-        inline bool waitFor(const std::chrono::duration<_Rep, _Period>& relTime) const
+        inline bool waitFor(const std::chrono::duration<_Rep, _Period>& relTime)
         {
             return base_type::waitFor(relTime);
         }
         template<typename _Clock, typename _Duration>
-        inline bool waitUntil(const std::chrono::time_point<_Clock, _Duration>& absTime) const
+        inline bool waitUntil(const std::chrono::time_point<_Clock, _Duration>& absTime)
         {
             return waitFor(absTime - _Clock::now());
         }
     };
-    //----------------------------------------------------------------------------------------------
 
 } /*itfc*/ } /*oqpi*/

@@ -26,8 +26,8 @@ namespace oqpi {
         notifier(task_uid) {};
 
         //------------------------------------------------------------------------------------------
-        void wait() const { oqpi_checkf(false, "Can't wait on a fire_and_forget task"); }
-        void notify() {}
+        void wait()     { oqpi_checkf(false, "Can't wait on a fire_and_forget task"); }
+        void notify()   {}
     };
     //----------------------------------------------------------------------------------------------
 
@@ -62,8 +62,8 @@ namespace oqpi {
         }
 
         //------------------------------------------------------------------------------------------
-        void wait() const   { event_.wait();    }
-        void notify()       { event_.notify();  }
+        void wait()     { event_.wait();    }
+        void notify()   { event_.notify();  }
 
     private:
         //------------------------------------------------------------------------------------------

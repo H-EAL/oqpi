@@ -81,7 +81,7 @@ namespace oqpi {
         }
 
         //------------------------------------------------------------------------------------------
-        virtual void wait() const override final
+        virtual void wait() override final
         {
             notifier_type::wait();
         }

@@ -123,18 +123,18 @@ namespace oqpi { namespace itfc {
         native_handle_type  getNativeHandle()   const   { return base_type::getNativeHandle();  }
         inline bool         isValid()           const   { return base_type::isValid();          }
         inline void         notify()                    { return base_type::notify();           }
-        inline bool         wait()              const   { return base_type::wait();             }
+        inline bool         wait()                      { return base_type::wait();             }
         inline void         reset()                     { return base_type::reset();            }
         inline void         close()                     { return base_type::close();            }
 
         //------------------------------------------------------------------------------------------
         template<typename _Rep, typename _Period>
-        inline bool waitFor(const std::chrono::duration<_Rep, _Period>& relTime) const
+        inline bool waitFor(const std::chrono::duration<_Rep, _Period>& relTime)
         {
             return base_type::waitFor(relTime);
         }
         template<typename _Clock, typename _Duration>
-        inline bool waitUntil(const std::chrono::time_point<_Clock, _Duration>& absTime) const
+        inline bool waitUntil(const std::chrono::time_point<_Clock, _Duration>& absTime)
         {
             return waitFor(absTime - _Clock::now());
         }

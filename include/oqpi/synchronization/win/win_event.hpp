@@ -93,7 +93,7 @@ namespace oqpi {
         }
 
         //------------------------------------------------------------------------------------------
-        bool wait() const
+        bool wait()
         {
             return internalWait(INFINITE, TRUE);
         }
@@ -106,7 +106,7 @@ namespace oqpi {
 
         //------------------------------------------------------------------------------------------
         template<typename _Rep, typename _Period>
-        bool waitFor(const std::chrono::duration<_Rep, _Period>& relTime) const
+        bool waitFor(const std::chrono::duration<_Rep, _Period>& relTime)
         {
             const auto dwMilliseconds = DWORD(std::chrono::duration_cast<std::chrono::milliseconds>(relTime).count());
             return internalWait(dwMilliseconds, TRUE);
@@ -124,7 +124,7 @@ namespace oqpi {
 
     private:
         //------------------------------------------------------------------------------------------
-        bool internalWait(DWORD dwMilliseconds, BOOL bAlertable) const
+        bool internalWait(DWORD dwMilliseconds, BOOL bAlertable)
         {
             const auto result = WaitForSingleObjectEx(handle_, dwMilliseconds, bAlertable);
             if (oqpi_failed(result == WAIT_OBJECT_0 || result == WAIT_TIMEOUT))
@@ -144,7 +144,6 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         native_handle_type handle_;
     };
-    //----------------------------------------------------------------------------------------------
 
 
     //----------------------------------------------------------------------------------------------
@@ -160,6 +159,5 @@ namespace oqpi {
             oqpi_verify(ResetEvent(handle) != FALSE);
         }
     };
-    //----------------------------------------------------------------------------------------------
 
 } /*oqpi*/

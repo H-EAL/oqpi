@@ -8,7 +8,6 @@ namespace oqpi {
     //----------------------------------------------------------------------------------------------
     // Forward declaration of this platform semaphore implementation
     using semaphore_impl = class win_semaphore;
-    //----------------------------------------------------------------------------------------------
 
 
     //----------------------------------------------------------------------------------------------
@@ -26,6 +25,7 @@ namespace oqpi {
             oqpi_check(GetLastError() != ERROR_ALREADY_EXISTS);
         }
 
+        //------------------------------------------------------------------------------------------
         ~win_semaphore()
         {
             if (handle_)
@@ -35,12 +35,14 @@ namespace oqpi {
             }
         }
 
+        //------------------------------------------------------------------------------------------
         win_semaphore(win_semaphore &&other)
             : handle_(other.handle_)
         {
             other.handle_ = nullptr;
         }
 
+        //------------------------------------------------------------------------------------------
         win_semaphore& operator =(win_semaphore &&rhs)
         {
             if (this != &rhs)
@@ -52,37 +54,55 @@ namespace oqpi {
         }
 
     protected:
+        //------------------------------------------------------------------------------------------
         // User interface
+        native_handle_type getNativeHandle() const
+        {
+            return handle_;
+        }
+
+        //------------------------------------------------------------------------------------------
+        bool isValid() const
+        {
+            return handle_ != nullptr;
+        }
+
+        //------------------------------------------------------------------------------------------
         void notify(int32_t count)
         {
             auto previousCount = LONG{ 0 };
             oqpi_verify(ReleaseSemaphore(handle_, LONG{ count }, &previousCount) != 0);
         }
 
+        //------------------------------------------------------------------------------------------
         void notifyAll()
         {
             notify(maxCount_);
         }
 
+        //------------------------------------------------------------------------------------------
         bool tryWait()
         {
             return internalWait(0, TRUE);
         }
 
-        void wait() const
+        //------------------------------------------------------------------------------------------
+        bool wait()
         {
-            internalWait(INFINITE, TRUE);
+            return internalWait(INFINITE, TRUE);
         }
 
+        //------------------------------------------------------------------------------------------
         template<typename _Rep, typename _Period>
-        bool waitFor(const std::chrono::duration<_Rep, _Period>& relTime) const
+        bool waitFor(const std::chrono::duration<_Rep, _Period>& relTime)
         {
             const auto dwMilliseconds = DWORD(std::chrono::duration_cast<std::chrono::milliseconds>(relTime).count());
             return internalWait(dwMilliseconds, TRUE);
         }
 
     private:
-        bool internalWait(DWORD dwMilliseconds, BOOL bAlertable) const
+        //------------------------------------------------------------------------------------------
+        bool internalWait(DWORD dwMilliseconds, BOOL bAlertable)
         {
             const auto result = WaitForSingleObjectEx(handle_, dwMilliseconds, bAlertable);
             if (oqpi_failed(result == WAIT_OBJECT_0 || result == WAIT_TIMEOUT))
@@ -93,15 +113,16 @@ namespace oqpi {
         }
 
     private:
+        //------------------------------------------------------------------------------------------
         // Not copyable
         win_semaphore(const win_semaphore &)                = delete;
         win_semaphore& operator =(const win_semaphore &)    = delete;
 
     private:
+        //------------------------------------------------------------------------------------------
         LONG    initCount_;
         LONG    maxCount_;
         HANDLE  handle_;
     };
-    //----------------------------------------------------------------------------------------------
 
 } /*oqpi*/

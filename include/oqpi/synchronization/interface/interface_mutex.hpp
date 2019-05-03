@@ -16,42 +16,42 @@ namespace oqpi { namespace itfc {
         // Augmentation layer, needs to be templated and inherit from the implementation
         , template<typename> typename _Layer
     >
-    class semaphore
+    class mutex
         : public std::conditional<is_empty_layer<_Layer>::value, _Impl, _Layer<_Impl>>::type
     {
     public:
         //------------------------------------------------------------------------------------------
-        // Whether the event has augmented layer(s) or not
+        // Whether the object has augmented layer(s) or not
         static constexpr auto is_lean   = is_empty_layer<_Layer>::value;
         // The platform specific implementation
-        using semaphore_impl            = _Impl;
+        using mutex_impl                = _Impl;
         // The actual base type taking into account the presence or absence of augmentation layer(s)
-        using base_type                 = typename std::conditional_t<is_lean, semaphore_impl, _Layer<semaphore_impl>>;
+        using base_type                 = typename std::conditional_t<is_lean, mutex_impl, _Layer<mutex_impl>>;
         // The actual type
-        using self_type                 = semaphore<semaphore_impl, _Layer>;
+        using self_type                 = mutex<mutex_impl, _Layer>;
         // Native handle
-        using native_handle_type        = typename semaphore_impl::native_handle_type;
+        using native_handle_type        = typename mutex_impl::native_handle_type;
 
     public:
         //------------------------------------------------------------------------------------------
-        semaphore(int32_t initCount = 0, int32_t maxCount = 0x7fffffff)
-            : base_type(initCount, maxCount)
+        mutex()
+            : base_type()
         {}
 
         //------------------------------------------------------------------------------------------
-        explicit semaphore(const std::string &name, int32_t initCount = 0, int32_t maxCount = 0x7fffffff)
-            : base_type(name, sync_object_creation_options::open_or_create, initCount, maxCount)
+        explicit mutex(const std::string &name)
+            : base_type(name, sync_object_creation_options::open_or_create)
         {}
 
         //------------------------------------------------------------------------------------------
-        semaphore(const std::string &name, sync_object_creation_options creationOption, int32_t initCount = 0, int32_t maxCount = 0x7fffffff)
-            : base_type(name, creationOption, initCount, maxCount)
+        mutex(const std::string &name, sync_object_creation_options creationOption)
+            : base_type(name, creationOption)
         {}
 
     public:
         //------------------------------------------------------------------------------------------
         // Movable
-        semaphore(self_type &&rhs)
+        mutex(self_type &&rhs)
             : base_type(std::move(rhs))
         {}
 
@@ -67,7 +67,7 @@ namespace oqpi { namespace itfc {
 
         //------------------------------------------------------------------------------------------
         // Not copyable
-        semaphore(const self_type &)                = delete;
+        mutex(const self_type &)                    = delete;
         self_type& operator =(const self_type &)    = delete;
 
     public:
@@ -75,23 +75,42 @@ namespace oqpi { namespace itfc {
         // User interface
         native_handle_type  getNativeHandle()       const   { return base_type::getNativeHandle();  }
         bool                isValid()               const   { return base_type::isValid();          }   
-        void                notify(int32_t count)           { return base_type::notify(count);      }
-        void                notifyOne()                     { return notify(1);                     }
-        void                notifyAll()                     { return base_type::notifyAll();        }
-        bool                tryWait()                       { return base_type::tryWait();          }
-        bool                wait()                          { return base_type::wait();             }
+        bool                tryLock()                       { return base_type::tryLock();          }
 
         //------------------------------------------------------------------------------------------
+        // STL BasicLockable requirements:  https://en.cppreference.com/w/cpp/named_req/BasicLockable
+        bool                lock()                          { return base_type::lock();             }
+        void                unlock()                        { return base_type::unlock();           }
+
+        //------------------------------------------------------------------------------------------
+        // STL Lockable requirements:       https://en.cppreference.com/w/cpp/named_req/Lockable
+        bool                try_lock()                      { return tryLock();                     }
+
+        //------------------------------------------------------------------------------------------
+        // STL TimedLockable requirements:  https://en.cppreference.com/w/cpp/named_req/TimedLockable
         template<typename _Rep, typename _Period>
-        inline bool waitFor(const std::chrono::duration<_Rep, _Period>& relTime)
+        bool try_lock_for(const std::chrono::duration<_Rep, _Period>& relTime)
         {
-            return base_type::waitFor(relTime);
+            return tryLockFor(relTime);
         }
         //------------------------------------------------------------------------------------------
         template<typename _Clock, typename _Duration>
-        inline bool waitUntil(const std::chrono::time_point<_Clock, _Duration>& absTime)
+        bool try_lock_until(const std::chrono::time_point<_Clock, _Duration>& absTime)
         {
-            return waitFor(absTime - _Clock::now());
+            return tryLockUntil(absTime);
+        }
+
+        //------------------------------------------------------------------------------------------
+        template<typename _Rep, typename _Period>
+        inline bool tryLockFor(const std::chrono::duration<_Rep, _Period>& relTime)
+        {
+            return base_type::tryLockFor(relTime);
+        }
+        //------------------------------------------------------------------------------------------
+        template<typename _Clock, typename _Duration>
+        inline bool tryLockUntil(const std::chrono::time_point<_Clock, _Duration>& absTime)
+        {
+            return tryLockFor(absTime - _Clock::now());
         }
     };
 

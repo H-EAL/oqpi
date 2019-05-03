@@ -12,6 +12,7 @@ namespace oqpi {
         , public _WorkerContext
     {
     public:
+        //------------------------------------------------------------------------------------------
         worker(_Scheduler &sc, int32_t id, const worker_config &config)
             : worker_base(id, config)
             , _WorkerContext(this)
@@ -20,6 +21,7 @@ namespace oqpi {
             , running_(false)
         {}
 
+        //------------------------------------------------------------------------------------------
         virtual ~worker()
         {
             stop();
@@ -129,6 +131,7 @@ namespace oqpi {
         }
 
     private:
+        //------------------------------------------------------------------------------------------
         // Reference to the parent scheduler, used to call signalAvailableWorker
         _Scheduler         &scheduler_;
         // The underlying thread

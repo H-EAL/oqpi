@@ -2,7 +2,7 @@
 
 #include "oqpi/platform.hpp"
 
-// Thread interface
+// Interface
 #include "oqpi/synchronization/interface/interface_event.hpp"
 // Platform specific implementations
 #if OQPI_PLATFORM_WIN
@@ -31,4 +31,4 @@ namespace oqpi {
     using global_manual_reset_event = manual_reset_event_interface<global_sync_object>;
 #endif
 
-}
+} /*oqpi*/

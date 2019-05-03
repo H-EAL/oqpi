@@ -170,6 +170,15 @@
     <ClInclude Include="..\..\include\oqpi\synchronization\sync_common.hpp">
       <Filter>include\synchronization</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\synchronization\mutex.hpp">
+      <Filter>include\synchronization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\synchronization\interface\interface_mutex.hpp">
+      <Filter>include\synchronization\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\synchronization\win\win_mutex.hpp">
+      <Filter>include\synchronization\win</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="oqpi.natvis" />

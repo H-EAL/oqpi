@@ -3,26 +3,24 @@
 #include "oqpi/platform.hpp"
 
 // Interface
-#include "oqpi/synchronization/interface/interface_semaphore.hpp"
+#include "oqpi/synchronization/interface/interface_mutex.hpp"
 // Platform specific implementations
 #if OQPI_PLATFORM_WIN
-#	include "oqpi/synchronization/win/win_semaphore.hpp"
+#	include "oqpi/synchronization/win/win_mutex.hpp"
 #else
-#	error No semaphore implementation defined for the current platform
+#	error No mutex implementation defined for the current platform
 #endif
 
 namespace oqpi {
 
     //----------------------------------------------------------------------------------------------
     template<template<typename> typename _Layer = local_sync_object>
-    using semaphore_interface = itfc::semaphore<semaphore_impl, _Layer>;
+    using mutex_interface = itfc::mutex<mutex_impl, _Layer>;
     //----------------------------------------------------------------------------------------------
 
 #ifdef OQPI_USE_DEFAULT
     //----------------------------------------------------------------------------------------------
-    using semaphore         = semaphore_interface<>;
-    using global_semaphore  = semaphore_interface<global_sync_object>;
-    //----------------------------------------------------------------------------------------------
+    using global_mutex = mutex_interface<global_sync_object>;
 #endif
 
 } /*oqpi*/

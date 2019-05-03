@@ -2,6 +2,7 @@
 
 #include "oqpi/platform.hpp"
 #include "oqpi/error_handling.hpp"
+#include "oqpi/synchronization/sync_common.hpp"
 
 
 namespace oqpi {
@@ -28,13 +29,13 @@ namespace oqpi {
 
     protected:
         //------------------------------------------------------------------------------------------
-        win_event(const std::string &name, event_creation_options creationOption)
+        win_event(const std::string &name, sync_object_creation_options creationOption)
             : handle_(nullptr)
         {
             const auto bManualReset  = BOOL{ _ResetPolicy::is_manual_reset_enabled() };
             const auto bInitialState = BOOL{ FALSE };
 
-            if (creationOption == event_creation_options::open_existing)
+            if (creationOption == sync_object_creation_options::open_existing)
             {
                 oqpi_check(!name.empty());
                 handle_ = OpenEventA(EVENT_ALL_ACCESS, FALSE, name.c_str());
@@ -42,7 +43,7 @@ namespace oqpi {
             else
             {
                 handle_ = CreateEventA(nullptr, bManualReset, bInitialState, name.empty() ? nullptr : name.c_str());
-                oqpi_check(creationOption == event_creation_options::open_or_create || GetLastError() != ERROR_ALREADY_EXISTS);
+                oqpi_check(creationOption == sync_object_creation_options::open_or_create || GetLastError() != ERROR_ALREADY_EXISTS);
             }
 
             oqpi_check(handle_ != nullptr);

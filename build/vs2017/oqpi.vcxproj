@@ -53,6 +53,7 @@
     <ClInclude Include="..\..\include\oqpi\synchronization\interface\interface_event.hpp" />
     <ClInclude Include="..\..\include\oqpi\synchronization\interface\interface_semaphore.hpp" />
     <ClInclude Include="..\..\include\oqpi\synchronization\semaphore.hpp" />
+    <ClInclude Include="..\..\include\oqpi\synchronization\sync_common.hpp" />
     <ClInclude Include="..\..\include\oqpi\synchronization\win\win_semaphore.hpp" />
     <ClInclude Include="..\..\include\oqpi\synchronization\win\win_event.hpp" />
     <ClInclude Include="..\..\include\oqpi\threading.hpp" />

@@ -2,18 +2,6 @@
 
 #include "oqpi/platform.hpp"
 
-namespace oqpi {
-
-    //----------------------------------------------------------------------------------------------
-    enum class event_creation_options
-    {
-        create_if_nonexistent,
-        open_existing,
-        open_or_create,
-    };
-
-}
-
 // Thread interface
 #include "oqpi/synchronization/interface/interface_event.hpp"
 // Platform specific implementations
@@ -36,11 +24,11 @@ namespace oqpi {
 
 #ifdef OQPI_USE_DEFAULT
     //----------------------------------------------------------------------------------------------
-    using auto_reset_event          = auto_reset_event_interface<itfc::local_event>;
-    using manual_reset_event        = manual_reset_event_interface<itfc::local_event>;
+    using auto_reset_event          = auto_reset_event_interface<local_sync_object>;
+    using manual_reset_event        = manual_reset_event_interface<local_sync_object>;
     //----------------------------------------------------------------------------------------------
-    using global_auto_reset_event   = auto_reset_event_interface<itfc::global_event>;
-    using global_manual_reset_event = manual_reset_event_interface<itfc::global_event>;
+    using global_auto_reset_event   = auto_reset_event_interface<global_sync_object>;
+    using global_manual_reset_event = manual_reset_event_interface<global_sync_object>;
 #endif
 
 }

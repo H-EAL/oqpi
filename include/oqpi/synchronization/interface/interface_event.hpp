@@ -1,59 +1,12 @@
 #pragma once
 
 #include <chrono>
-#include <string>
 
 #include "oqpi/empty_layer.hpp"
+#include "oqpi/synchronization/sync_common.hpp"
 
 
 namespace oqpi { namespace itfc {
-
-    //----------------------------------------------------------------------------------------------
-    template<typename _Impl>
-    class local_event
-        : protected _Impl
-    {
-    protected:
-        //------------------------------------------------------------------------------------------
-        local_event()
-            : _Impl("", event_creation_options::open_or_create)
-        {}
-
-        //------------------------------------------------------------------------------------------
-        local_event(const std::string &, event_creation_options)
-            : local_event()
-        {}
-    };
-
-
-    //----------------------------------------------------------------------------------------------
-    template<typename _Impl>
-    class global_event
-        : protected _Impl
-    {
-    protected:
-        //------------------------------------------------------------------------------------------
-        global_event()
-            : _Impl("", false)
-        {
-            static_assert(false, "You must name the global event.");
-        }
-
-        //------------------------------------------------------------------------------------------
-        global_event(const std::string &name, event_creation_options creationOption)
-            : _Impl(name, creationOption)
-            , name_(name)
-        {}
-
-    public:
-        //------------------------------------------------------------------------------------------
-        const auto& getName() const { return name_; }
-
-    private:
-        //------------------------------------------------------------------------------------------
-        std::string name_;
-    };
-
 
     //----------------------------------------------------------------------------------------------
     template
@@ -81,17 +34,17 @@ namespace oqpi { namespace itfc {
 
     public:
         //------------------------------------------------------------------------------------------
-        explicit event()
+        event()
             : base_type()
         {}
 
         //------------------------------------------------------------------------------------------
         explicit event(const std::string &name)
-            : base_type(name, event_creation_options::open_or_create)
+            : base_type(name, sync_object_creation_options::open_or_create)
         {}
 
         //------------------------------------------------------------------------------------------
-        explicit event(const std::string &name, event_creation_options creationOption)
+        explicit event(const std::string &name, sync_object_creation_options creationOption)
             : base_type(name, creationOption)
         {}
 

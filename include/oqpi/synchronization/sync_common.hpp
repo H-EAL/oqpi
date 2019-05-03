@@ -21,13 +21,15 @@ namespace oqpi {
     {
     protected:
         //------------------------------------------------------------------------------------------
-        local_sync_object()
-            : _Impl("", sync_object_creation_options::open_or_create)
+        template<typename... _Args>
+        local_sync_object(_Args &&...args)
+            : _Impl("", sync_object_creation_options::open_or_create, std::forward<_Args>(args)...)
         {}
 
         //------------------------------------------------------------------------------------------
-        local_sync_object(const std::string &, sync_object_creation_options)
-            : local_sync_object()
+        template<typename... _Args>
+        local_sync_object(const std::string &, sync_object_creation_options, _Args &&...args)
+            : local_sync_object(std::forward<_Args>(args)...)
         {}
     };
 

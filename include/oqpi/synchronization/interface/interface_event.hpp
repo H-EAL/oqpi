@@ -14,7 +14,7 @@ namespace oqpi { namespace itfc {
         // Platform specific implementation for events
           typename _Impl
         // Augmentation layer, needs to be templated and inherit from the implementation
-        , template<typename> typename _Layer = empty_layer
+        , template<typename> typename _Layer
     >
     class event
         : public std::conditional<is_empty_layer<_Layer>::value, _Impl, _Layer<_Impl>>::type

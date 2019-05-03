@@ -13,11 +13,16 @@
 
 namespace oqpi {
 
-    template<template<typename> typename _Layer = empty_layer>
+    //----------------------------------------------------------------------------------------------
+    template<template<typename> typename _Layer = local_sync_object>
     using semaphore_interface = itfc::semaphore<semaphore_impl, _Layer>;
+    //----------------------------------------------------------------------------------------------
 
 #ifdef OQPI_USE_DEFAULT
-    using semaphore = semaphore_interface<>;
+    //----------------------------------------------------------------------------------------------
+    using semaphore         = semaphore_interface<>;
+    using global_semaphore  = semaphore_interface<global_sync_object>;
+    //----------------------------------------------------------------------------------------------
 #endif
 
-}
+} /*oqpi*/

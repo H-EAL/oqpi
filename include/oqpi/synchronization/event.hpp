@@ -14,18 +14,18 @@
 namespace oqpi {
 
     //----------------------------------------------------------------------------------------------
-    template<template<typename> typename _Layer = empty_layer>
+    template<template<typename> typename _Layer = local_sync_object>
     using auto_reset_event_interface    = itfc::event<event_impl<event_auto_reset_policy_impl>,     _Layer>;
 
     //----------------------------------------------------------------------------------------------
-    template<template<typename> typename _Layer = empty_layer>
+    template<template<typename> typename _Layer = local_sync_object>
     using manual_reset_event_interface  = itfc::event<event_impl<event_manual_reset_policy_impl>,   _Layer>;
 
 
 #ifdef OQPI_USE_DEFAULT
     //----------------------------------------------------------------------------------------------
-    using auto_reset_event          = auto_reset_event_interface<local_sync_object>;
-    using manual_reset_event        = manual_reset_event_interface<local_sync_object>;
+    using auto_reset_event          = auto_reset_event_interface<>;
+    using manual_reset_event        = manual_reset_event_interface<>;
     //----------------------------------------------------------------------------------------------
     using global_auto_reset_event   = auto_reset_event_interface<global_sync_object>;
     using global_manual_reset_event = manual_reset_event_interface<global_sync_object>;

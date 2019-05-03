@@ -1,6 +1,8 @@
 #pragma once
 
 #include "oqpi/platform.hpp"
+#include "oqpi/error_handling.hpp"
+#include "oqpi/synchronization/sync_common.hpp"
 
 
 namespace oqpi {
@@ -19,15 +21,23 @@ namespace oqpi {
 
     protected:
         //------------------------------------------------------------------------------------------
-        explicit win_semaphore(int32_t initCount, int32_t maxCount, const std::string &)
+        win_semaphore(const std::string &name, sync_object_creation_options creationOption, int32_t initCount, int32_t maxCount)
             : initCount_(initCount)
             , maxCount_(maxCount)
             , handle_(nullptr)
         {
-            handle_ = CreateSemaphoreA(nullptr, initCount_, maxCount_, nullptr);
+            if (creationOption == sync_object_creation_options::open_existing)
+            {
+                oqpi_check(!name.empty());
+                handle_ = OpenSemaphoreA(SEMAPHORE_ALL_ACCESS, FALSE, name.c_str());
+            }
+            else
+            {
+                handle_ = CreateSemaphoreA(nullptr, initCount_, maxCount_, name.empty() ? nullptr : name.c_str());
+                oqpi_check(creationOption == sync_object_creation_options::open_or_create || GetLastError() != ERROR_ALREADY_EXISTS);
+            }
 
             oqpi_check(handle_ != nullptr);
-            oqpi_check(GetLastError() != ERROR_ALREADY_EXISTS);
         }
 
         //------------------------------------------------------------------------------------------

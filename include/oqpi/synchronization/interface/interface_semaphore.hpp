@@ -3,6 +3,7 @@
 #include <chrono>
 
 #include "oqpi/empty_layer.hpp"
+#include "oqpi/synchronization/sync_common.hpp"
 
 
 namespace oqpi { namespace itfc {
@@ -13,7 +14,7 @@ namespace oqpi { namespace itfc {
         // Platform specific implementation for semaphores
           typename _Impl
         // Augmentation layer, needs to be templated and inherit from the implementation
-        , template<typename> typename _Layer = empty_layer
+        , template<typename> typename _Layer
     >
     class semaphore
         : public std::conditional<is_empty_layer<_Layer>::value, _Impl, _Layer<_Impl>>::type
@@ -33,8 +34,18 @@ namespace oqpi { namespace itfc {
 
     public:
         //------------------------------------------------------------------------------------------
-        explicit semaphore(const std::string &name = "", int32_t initCount = 0, int32_t maxCount = 0x7fffffff)
-            : base_type(initCount, maxCount, name)
+        semaphore(int32_t initCount = 0, int32_t maxCount = 0x7fffffff)
+            : base_type(initCount, maxCount)
+        {}
+
+        //------------------------------------------------------------------------------------------
+        explicit semaphore(const std::string &name, int32_t initCount = 0, int32_t maxCount = 0x7fffffff)
+            : base_type(name, sync_object_creation_options::open_or_create, initCount, maxCount)
+        {}
+
+        //------------------------------------------------------------------------------------------
+        semaphore(const std::string &name, sync_object_creation_options creationOption, int32_t initCount = 0, int32_t maxCount = 0x7fffffff)
+            : base_type(name, creationOption, initCount, maxCount)
         {}
 
     public:

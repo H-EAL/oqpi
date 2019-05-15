@@ -34,8 +34,6 @@ namespace oqpi {
                 handle_ = CreateMutexA(nullptr, TRUE, name.empty() ? nullptr : name.c_str());
                 oqpi_check(creationOption == sync_object_creation_options::open_or_create || GetLastError() != ERROR_ALREADY_EXISTS);
             }
-
-            oqpi_check(handle_ != nullptr);
         }
 
         //------------------------------------------------------------------------------------------

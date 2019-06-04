@@ -142,8 +142,7 @@ namespace oqpi {
             const auto result = WaitForSingleObject(handle_, INFINITE);
             if (result != WAIT_FAILED)
             {
-                handle_ = nullptr;
-                id_     = 0;
+                detach();
             }
             else
             {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <tuple>
+#include <type_traits>
 
 #include "oqpi/scheduling/task_base.hpp"
 #include "oqpi/scheduling/task_result.hpp"
@@ -12,13 +13,13 @@ namespace oqpi {
     template<task_type _TaskType, typename _EventType, typename _TaskContext, typename _Func>
     class task final
         : public task_base
-        , public task_result<typename std::result_of<_Func()>::type>
+        , public task_result<typename std::invoke_result_t<_Func>>
         , public _TaskContext
         , public notifier<_TaskType, _EventType>
     {
         //------------------------------------------------------------------------------------------
         using self_type         = task<_TaskType, _EventType, _TaskContext, _Func>;
-        using return_type       = typename std::result_of<_Func()>::type;
+        using return_type       = typename std::invoke_result_t<_Func>;
         using task_result_type  = task_result<return_type>;
         using notifier_type     = notifier<_TaskType, _EventType>;
 
@@ -113,7 +114,7 @@ namespace oqpi {
         }
 
         //------------------------------------------------------------------------------------------
-        return_type waitForResult() const
+        return_type waitForResult()
         {
             wait();
             return getResult();
@@ -149,7 +150,7 @@ namespace oqpi {
     {
         auto f = [func = std::forward<_Func>(func), args = std::make_tuple(std::forward<_Args>(args)...)] () mutable
         {
-            return std::apply(func, args);
+            return std::apply(func, std::move(args));
         };
 
         using task_type = task<_TaskType, _EventType, _TaskContext, std::decay_t<decltype(f)>>;

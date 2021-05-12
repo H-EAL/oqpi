@@ -6,7 +6,6 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <limits.h>
-#include <algorithm>
 
 #include "oqpi/platform.hpp"
 #include "oqpi/error_handling.hpp"
@@ -61,7 +60,6 @@ namespace oqpi {
                     return;
                 }
 
-                // For shm_open link with -lrt?
                 // Mode applies only to future accesses of the newly created file.
                 auto mode           = S_IRUSR;
                 auto flags          = O_CREAT | O_EXCL | O_RDWR;

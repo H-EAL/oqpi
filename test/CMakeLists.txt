@@ -16,6 +16,9 @@ add_executable(oqpi_tests ${files})
 #Set debug mode using _GLIBCXX_DEBUG macro
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_GLIBCXX_DEBUG")
 
+# Link with lrt
+set(CMAKE_EXE_LINKER_FLAGS "-lrt")
+
 # Link with pthread
 set(THREADS_PREFER_FLAG ON)
 FIND_PACKAGE(Threads REQUIRED)

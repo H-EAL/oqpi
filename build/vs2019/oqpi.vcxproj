@@ -54,6 +54,9 @@
     <ClInclude Include="..\..\include\oqpi\synchronization\interface\interface_mutex.hpp" />
     <ClInclude Include="..\..\include\oqpi\synchronization\interface\interface_semaphore.hpp" />
     <ClInclude Include="..\..\include\oqpi\synchronization\mutex.hpp" />
+    <ClInclude Include="..\..\include\oqpi\synchronization\posix\posix_event.hpp" />
+    <ClInclude Include="..\..\include\oqpi\synchronization\posix\posix_mutex.hpp" />
+    <ClInclude Include="..\..\include\oqpi\synchronization\posix\posix_semaphore.hpp" />
     <ClInclude Include="..\..\include\oqpi\synchronization\semaphore.hpp" />
     <ClInclude Include="..\..\include\oqpi\synchronization\sync_common.hpp" />
     <ClInclude Include="..\..\include\oqpi\synchronization\win\win_mutex.hpp" />
@@ -61,6 +64,7 @@
     <ClInclude Include="..\..\include\oqpi\synchronization\win\win_event.hpp" />
     <ClInclude Include="..\..\include\oqpi\threading.hpp" />
     <ClInclude Include="..\..\include\oqpi\threading\interface_thread.hpp" />
+    <ClInclude Include="..\..\include\oqpi\threading\posix_thread.hpp" />
     <ClInclude Include="..\..\include\oqpi\threading\this_thread.hpp" />
     <ClInclude Include="..\..\include\oqpi\threading\thread.hpp" />
     <ClInclude Include="..\..\include\oqpi\threading\thread_attributes.hpp" />

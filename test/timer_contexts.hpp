@@ -7,9 +7,17 @@
 
 int64_t query_performance_counter_aux()
 {
+#if OQPI_PLATFORM_WIN
     LARGE_INTEGER li;
     QueryPerformanceCounter(&li);
     return li.QuadPart;
+
+#elif OQPI_PLATFORM_POSIX
+    timespec time;
+    clock_gettime(CLOCK_MONOTONIC_RAW, &time);
+    return time.tv_nsec + time.tv_sec * 1e9;
+
+#endif
 }
 
 int64_t first_measure()
@@ -27,16 +35,29 @@ int64_t query_performance_counter()
 
 int64_t query_performance_frequency()
 {
+#if OQPI_PLATFORM_WIN
     LARGE_INTEGER li;
     QueryPerformanceFrequency(&li);
     return li.QuadPart;
+
+#elif OQPI_PLATFORM_POSIX
+    return -1;
+
+#endif
 }
 
 double duration(int64_t s, int64_t e)
 {
+#if OQPI_PLATFORM_WIN
     static const auto F = query_performance_frequency();
+    auto dt             = e - s;
+    return (dt / (F * 1.0)) * 1000.0;
+
+#elif OQPI_PLATFORM_POSIX
     auto dt = e - s;
-    return (dt / (F*1.0)) * 1000.0;
+    return dt / 1e6;
+
+#endif
 }
 
 

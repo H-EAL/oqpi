@@ -17,7 +17,7 @@ namespace oqpi {
             : worker_base(id, config)
             , _WorkerContext(this)
             , scheduler_(sc)
-            , notifier_("WorkerNotifier/" + this->getName())
+            , notifier_("/WorkerNotifier_" + this->getName())
             , running_(false)
         {}
 

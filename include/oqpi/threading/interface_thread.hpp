@@ -3,6 +3,7 @@
 #include <tuple>
 #include <memory>
 #include <type_traits>
+#include <functional>
 
 #include "oqpi/empty_layer.hpp"
 #include "oqpi/threading/thread_attributes.hpp"

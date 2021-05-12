@@ -7,6 +7,8 @@
 // Platform specific implementations
 #if OQPI_PLATFORM_WIN
 #	include "oqpi/threading/win_thread.hpp"
+#elif OQPI_PLATFORM_POSIX
+#   include "oqpi/threading/posix_thread.hpp"
 #else
 #	error No thread implementation defined for the current platform
 #endif

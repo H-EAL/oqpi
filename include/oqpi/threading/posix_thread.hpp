@@ -144,11 +144,11 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         // Platform specific types
         using native_handle_type    = pthread_t;
-        using id                    = void;
+        using id                    = pthread_t;
 
     protected:
         //------------------------------------------------------------------------------------------
-        id                  getId()             const {                       }
+        id                  getId()             const { return handle_;       }
         native_handle_type  getNativeHandle()   const { return handle_;       }
         bool                joinable()          const { return handle_ != 0;  }
         //------------------------------------------------------------------------------------------
@@ -394,6 +394,7 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         inline auto get_id()
         {
+            return posix_thread::get_current_thread_id();
         }
         //------------------------------------------------------------------------------------------
 

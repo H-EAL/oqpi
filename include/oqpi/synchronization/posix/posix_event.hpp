@@ -38,13 +38,13 @@ namespace oqpi {
                 : handle_(nullptr)
                 , isLocalSyncObject_(name.empty())
         {
-            if(isLocalSyncObject_)
+            if (isLocalSyncObject_ && creationOption != sync_object_creation_options::open_existing)
             {
                 // Create an unnamed semaphore.
                 handle_ = new sem_t;
 
                 const auto error = sem_init(handle_, 0, 0);
-                if(error == -1)
+                if (error == -1)
                 {
                     oqpi_error("sem_init failed with error %d", errno);
                 }
@@ -52,19 +52,27 @@ namespace oqpi {
             else
             {
                 // Create a named semaphore.
-                const auto validName = isNameValid(name);
-                oqpi_check(validName);
-
-                if(!validName)
+                if (oqpi_failed(isNameValid(name)))
                 {
                     oqpi_error("the name \"%s\" you provided is not valid for a posix semaphore.", name.c_str());
                     return;
                 }
 
-                // If a semaphore with name doesn't exist, then it is created.
-                handle_ = sem_open(name.c_str(), O_CREAT, S_IRUSR | S_IWUSR, 0);
+                // Create a new semaphore.
+                if (creationOption == sync_object_creation_options::create_if_nonexistent)
+                {
+                    // An error is returned if a semaphore with the given name already exists.
+                    handle_ = sem_open(name.c_str(), O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, 0);
 
-                if(handle_ == SEM_FAILED)
+                }
+                // Create or open a semaphore.
+                else
+                {
+                    // If a semaphore with name doesn't exist, then it is created.
+                    handle_ = sem_open(name.c_str(), O_CREAT, S_IRUSR | S_IWUSR, 0);
+                }
+
+                if (handle_ == SEM_FAILED)
                 {
                     oqpi_error("sem_open failed with error %d", errno);
                 }
@@ -100,7 +108,7 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         posix_event& operator =(posix_event &&rhs)
         {
-            if (this != &rhs)
+            if (this != &rhs && !isValid())
             {
                 handle_             = rhs.handle_;
                 isLocalSyncObject_  = rhs.isLocalSyncObject_;
@@ -190,7 +198,7 @@ namespace oqpi {
 
     private:
         //------------------------------------------------------------------------------------------
-        bool isNameValid(const std::string &name)
+        bool isNameValid(const std::string &name) const
         {
             // Note that name must be in the form of /somename; that is, a null-terminated string of up to NAME_MAX
             // characters consisting of an initial slash, followed by one or more characters, none of which are slashes.

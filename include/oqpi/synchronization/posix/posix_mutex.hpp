@@ -41,7 +41,7 @@ namespace oqpi {
         posix_mutex(const std::string &name, sync_object_creation_options creationOption)
                 : handle_(nullptr), name_(name) 
         {
-            if (name_.empty())
+            if (name_.empty() && creationOption != sync_object_creation_options::open_existing)
             {
                 // Local mutex.
                 handle_ = new mutex_wrapper;
@@ -51,10 +51,7 @@ namespace oqpi {
             else
             {
                 // Global mutex.
-                const auto validName = isNameValid(name_);
-                oqpi_check(validName);
-
-                if (!validName)
+                if (oqpi_failed(isNameValid(name)))
                 {
                     oqpi_error("the name \"%s\" you provided is not valid for shared memory.", name_.c_str());
                     return;
@@ -65,7 +62,8 @@ namespace oqpi {
                 auto flags          = O_CREAT | O_EXCL | O_RDWR;
                 auto fileDescriptor = shm_open(name_.c_str(), flags, mode);
 
-                if (fileDescriptor == -1) 
+                // Open existing mutex.
+                if (fileDescriptor == -1 && creationOption != sync_object_creation_options::create_if_nonexistent)
                 {
                     // If O_EXCL and O_CREAT are specified, and a shared memory object with the given name already exists,
                     // an error is returned. 
@@ -99,7 +97,8 @@ namespace oqpi {
                     handle_ = reinterpret_cast<mutex_wrapper *>(mmap(NULL, sizeof(*handle_), PROT_READ | PROT_WRITE,
                         MAP_SHARED, fileDescriptor, 0));
                 }
-                else 
+                // Create new mutex.
+                else if(fileDescriptor != -1 && creationOption != sync_object_creation_options::open_existing)
                 {
                     // Allocate shared memory.
                     oqpi_verify(ftruncate(fileDescriptor, sizeof(mutex_wrapper) != -1));
@@ -112,6 +111,10 @@ namespace oqpi {
 
                     // Now allow for read and write access.
                     fchmod(fileDescriptor, S_IRUSR | S_IWUSR);
+                }
+                else
+                {
+                    oqpi_error("Was not able to open or create a posix_mutex with the creation option specified.");
                 }
 
                 close(fileDescriptor);
@@ -166,7 +169,7 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         posix_mutex &operator=(posix_mutex &&rhs) 
         {
-            if (this != &rhs) 
+            if (this != &rhs && !isValid())
             {
                 handle_     = rhs.handle_;
                 name_       = rhs.name_;
@@ -251,7 +254,7 @@ namespace oqpi {
         }
 
         //------------------------------------------------------------------------------------------
-        bool isNameValid(const std::string &name) 
+        bool isNameValid(const std::string &name) const
         {
             // Note that name must be in the form of /somename; that is, a null-terminated string of up to NAME_MAX
             // characters consisting of an initial slash, followed by one or more characters, none of which are slashes.

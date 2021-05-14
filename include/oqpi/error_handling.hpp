@@ -6,11 +6,11 @@
 
 #include "oqpi/platform.hpp"
 
-#if _DEBUG
-#   define OQPI_ENABLE_CHECKS   (1)
+#if NDEBUG
+#   define OQPI_ENABLE_CHECKS   (0)
 #   define OQPI_ENABLE_LOGS     (1)
 #else
-#   define OQPI_ENABLE_CHECKS   (0)
+#   define OQPI_ENABLE_CHECKS   (1)
 #   define OQPI_ENABLE_LOGS     (1)
 #endif
 
@@ -94,7 +94,7 @@ namespace oqpi {
         static const unsigned int bufferSize = 1 << 10;
         thread_local static char formattedMessage[bufferSize];
         va_start(argPtr, description);
-        vsprintf_s(formattedMessage, bufferSize, description, argPtr);
+        vsnprintf(formattedMessage, bufferSize, description, argPtr);
         va_end(argPtr);
 
 
@@ -196,8 +196,8 @@ namespace oqpi {
 //----------------------------------------------------------------------------------------------
 // Error and warning logs
 #if OQPI_ENABLE_LOGS
-#   define oqpi_error(MSG, ...)     fprintf(stderr, "[error  ] " ## MSG ## "\n", ##__VA_ARGS__)
-#   define oqpi_warning(MSG, ...)   fprintf(stderr, "[warning] " ## MSG ## "\n", ##__VA_ARGS__)
+#   define oqpi_error(MSG, ...)     fprintf(stderr, "[error  ] " MSG "\n", ##__VA_ARGS__)
+#   define oqpi_warning(MSG, ...)   fprintf(stderr, "[warning] " MSG "\n", ##__VA_ARGS__)
 #else
 #   define oqpi_error(MSG, ...)
 #   define oqpi_warning(MSG, ...)

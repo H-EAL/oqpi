@@ -41,6 +41,9 @@
     <Filter Include="include\parallel_algorithms\_partitioners">
       <UniqueIdentifier>{a1f45b61-79d6-41b7-b56e-1db52ec8034c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\synchronization\posix">
+      <UniqueIdentifier>{21dd6cd2-a17f-47e0-9369-f0c4e6f88b1f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\oqpi.hpp" />
@@ -178,6 +181,18 @@
     </ClInclude>
     <ClInclude Include="..\..\include\oqpi\synchronization\win\win_mutex.hpp">
       <Filter>include\synchronization\win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\threading\posix_thread.hpp">
+      <Filter>include\threading\_impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\synchronization\posix\posix_event.hpp">
+      <Filter>include\synchronization\posix</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\synchronization\posix\posix_mutex.hpp">
+      <Filter>include\synchronization\posix</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\synchronization\posix\posix_semaphore.hpp">
+      <Filter>include\synchronization\posix</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

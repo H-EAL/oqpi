@@ -7,6 +7,8 @@
 // Platform specific implementations
 #if OQPI_PLATFORM_WIN
 #	include "oqpi/synchronization/win/win_mutex.hpp"
+#elif OQPI_PLATFORM_POSIX
+#	include "oqpi/synchronization/posix/posix_mutex.hpp"
 #else
 #	error No mutex implementation defined for the current platform
 #endif

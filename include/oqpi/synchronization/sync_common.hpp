@@ -43,7 +43,7 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         global_sync_object()
         {
-            static_assert(false, "You must name the global synchronization object.");
+            fail();
         }
 
         //------------------------------------------------------------------------------------------
@@ -56,6 +56,16 @@ namespace oqpi {
     public:
         //------------------------------------------------------------------------------------------
         const auto& getName() const { return name_; }
+
+    private:
+        //------------------------------------------------------------------------------------------
+        // Clang will evaluate a static_assert(false) even if the function is never called
+        // So we must trick it to not evaluate it by templating the assert condition
+        template<bool _UndefinedFunction = false>
+        void fail()
+        {
+            static_assert(_UndefinedFunction, "You must name the global synchronization object.");
+        }
 
     private:
         //------------------------------------------------------------------------------------------

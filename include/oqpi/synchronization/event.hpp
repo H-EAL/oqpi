@@ -7,6 +7,8 @@
 // Platform specific implementations
 #if OQPI_PLATFORM_WIN
 #	include "oqpi/synchronization/win/win_event.hpp"
+#elif OQPI_PLATFORM_POSIX
+#	include "oqpi/synchronization/posix/posix_event.hpp"
 #else
 #	error No event implementation defined for the current platform
 #endif

@@ -101,7 +101,7 @@ namespace oqpi {
                 else if(fileDescriptor != -1 && creationOption != sync_object_creation_options::open_existing)
                 {
                     // Allocate shared memory.
-                    oqpi_verify(ftruncate(fileDescriptor, sizeof(mutex_wrapper) != -1));
+                    oqpi_verify(ftruncate(fileDescriptor, sizeof(mutex_wrapper)) != -1);
 
                     // Map the object into the caller's address space.
                     handle_ = reinterpret_cast<mutex_wrapper *>(mmap(NULL, sizeof(*handle_), PROT_READ | PROT_WRITE,

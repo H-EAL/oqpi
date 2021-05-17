@@ -34,7 +34,11 @@ namespace oqpi {
             else
             {
                 handle_ = CreateSemaphoreA(nullptr, initCount_, maxCount_, name.empty() ? nullptr : name.c_str());
-                oqpi_check(creationOption == sync_object_creation_options::open_or_create || GetLastError() != ERROR_ALREADY_EXISTS);
+                if (creationOption == sync_object_creation_options::create_if_nonexistent && GetLastError() == ERROR_ALREADY_EXISTS)
+                {
+                    CloseHandle(handle_);
+                    handle_ = nullptr;
+                }
             }
         }
 

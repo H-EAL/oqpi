@@ -19,7 +19,8 @@ namespace oqpi {
     using mutex_impl = class posix_mutex;
 
     //----------------------------------------------------------------------------------------------
-    class posix_mutex {
+    class posix_mutex
+    {
     protected:
         //------------------------------------------------------------------------------------------
         struct mutex_wrapper
@@ -38,7 +39,7 @@ namespace oqpi {
 
     protected:
         //------------------------------------------------------------------------------------------
-        posix_mutex(const std::string &name, sync_object_creation_options creationOption)
+        posix_mutex(const std::string &name, sync_object_creation_options creationOption, bool lockImmediately)
                 : handle_(nullptr), name_(name) 
         {
             if (name_.empty() && creationOption != sync_object_creation_options::open_existing)
@@ -46,12 +47,12 @@ namespace oqpi {
                 // Local mutex.
                 handle_ = new mutex_wrapper;
 
-                initMutex(false);
+                initMutex(false, lockImmediately);
             }
             else
             {
                 // Global mutex.
-                if (oqpi_failed(isNameValid(name)))
+                if (!isNameValid(name))
                 {
                     oqpi_error("the name \"%s\" you provided is not valid for shared memory.", name_.c_str());
                     return;
@@ -96,18 +97,26 @@ namespace oqpi {
                     // Map the object into the caller's address space.
                     handle_ = reinterpret_cast<mutex_wrapper *>(mmap(NULL, sizeof(*handle_), PROT_READ | PROT_WRITE,
                         MAP_SHARED, fileDescriptor, 0));
+
+                    if (lockImmediately)
+                    {
+                        oqpi_verify(lock());
+                    }
                 }
                 // Create new mutex.
                 else if(fileDescriptor != -1 && creationOption != sync_object_creation_options::open_existing)
                 {
                     // Allocate shared memory.
-                    oqpi_verify(ftruncate(fileDescriptor, sizeof(mutex_wrapper)) != -1);
+                    if(ftruncate(fileDescriptor, sizeof(mutex_wrapper)) == -1)
+                    {
+                        oqpi_error("ftruncate() failed with error code %d", errno);
+                    }
 
                     // Map the object into the caller's address space.
                     handle_ = reinterpret_cast<mutex_wrapper *>(mmap(NULL, sizeof(*handle_), PROT_READ | PROT_WRITE,
                         MAP_SHARED, fileDescriptor, 0));
 
-                    initMutex(true);
+                    initMutex(true, lockImmediately);
 
                     // Now allow for read and write access.
                     fchmod(fileDescriptor, S_IRUSR | S_IWUSR);
@@ -229,7 +238,7 @@ namespace oqpi {
 
     private:
         //------------------------------------------------------------------------------------------
-        void initMutex(bool processShared)
+        void initMutex(bool processShared, bool lockImmediately)
         {
             auto attr  = pthread_mutexattr_t{};
             auto error = pthread_mutexattr_init(&attr);
@@ -251,6 +260,11 @@ namespace oqpi {
             }
 
             pthread_mutexattr_destroy(&attr);
+
+            if (lockImmediately)
+            {
+                oqpi_verify(lock());
+            }
         }
 
         //------------------------------------------------------------------------------------------

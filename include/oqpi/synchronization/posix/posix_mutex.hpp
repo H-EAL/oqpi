@@ -52,7 +52,7 @@ namespace oqpi {
             else
             {
                 // Global mutex.
-                if (!isNameValid(name))
+                if (oqpi_failed(isNameValid(name)))
                 {
                     oqpi_error("the name \"%s\" you provided is not valid for shared memory.", name_.c_str());
                     return;

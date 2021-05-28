@@ -40,12 +40,12 @@ namespace oqpi { namespace itfc {
 
         //------------------------------------------------------------------------------------------
         explicit mutex(const std::string &name)
-            : base_type(name, sync_object_creation_options::open_or_create)
+            : base_type(name, sync_object_creation_options::open_or_create, false)
         {}
 
         //------------------------------------------------------------------------------------------
-        mutex(const std::string &name, sync_object_creation_options creationOption)
-            : base_type(name, creationOption)
+        mutex(const std::string &name, sync_object_creation_options creationOption, bool lockImmediately = false)
+            : base_type(name, creationOption, lockImmediately)
         {}
 
     public:

@@ -21,22 +21,17 @@ namespace oqpi {
 
     protected:
         //------------------------------------------------------------------------------------------
-        win_mutex(const std::string &name, sync_object_creation_options creationOption, bool lockImmediately)
+        win_mutex(const std::string &name, sync_object_creation_options creationOption, bool lockOnCreation)
             : handle_(nullptr)
         {
             if (creationOption == sync_object_creation_options::open_existing)
             {
                 oqpi_check(!name.empty());
                 handle_ = OpenMutexA(MUTEX_ALL_ACCESS, FALSE, name.c_str());
-                
-                if (lockImmediately)
-                {
-                    oqpi_verify(lock());
-                }
             }
             else
             {
-                handle_ = CreateMutexA(nullptr, lockImmediately, name.empty() ? nullptr : name.c_str());
+                handle_ = CreateMutexA(nullptr, lockOnCreation, name.empty() ? nullptr : name.c_str());
                 if (creationOption == sync_object_creation_options::create_if_nonexistent && GetLastError() == ERROR_ALREADY_EXISTS)
                 {
                     CloseHandle(handle_);

@@ -39,7 +39,7 @@ namespace oqpi {
 
     protected:
         //------------------------------------------------------------------------------------------
-        posix_mutex(const std::string &name, sync_object_creation_options creationOption, bool lockImmediately)
+        posix_mutex(const std::string &name, sync_object_creation_options creationOption, bool lockOnCreation)
                 : handle_(nullptr), name_(name) 
         {
             if (name_.empty() && creationOption != sync_object_creation_options::open_existing)
@@ -47,7 +47,7 @@ namespace oqpi {
                 // Local mutex.
                 handle_ = new mutex_wrapper;
 
-                initMutex(false, lockImmediately);
+                initMutex(false, lockOnCreation);
             }
             else
             {
@@ -97,11 +97,6 @@ namespace oqpi {
                     // Map the object into the caller's address space.
                     handle_ = reinterpret_cast<mutex_wrapper *>(mmap(NULL, sizeof(*handle_), PROT_READ | PROT_WRITE,
                         MAP_SHARED, fileDescriptor, 0));
-
-                    if (lockImmediately)
-                    {
-                        oqpi_verify(lock());
-                    }
                 }
                 // Create new mutex.
                 else if(fileDescriptor != -1 && creationOption != sync_object_creation_options::open_existing)
@@ -116,7 +111,7 @@ namespace oqpi {
                     handle_ = reinterpret_cast<mutex_wrapper *>(mmap(NULL, sizeof(*handle_), PROT_READ | PROT_WRITE,
                         MAP_SHARED, fileDescriptor, 0));
 
-                    initMutex(true, lockImmediately);
+                    initMutex(true, lockOnCreation);
 
                     // Now allow for read and write access.
                     fchmod(fileDescriptor, S_IRUSR | S_IWUSR);
@@ -238,7 +233,7 @@ namespace oqpi {
 
     private:
         //------------------------------------------------------------------------------------------
-        void initMutex(bool processShared, bool lockImmediately)
+        void initMutex(bool processShared, bool lockOnCreation)
         {
             auto attr  = pthread_mutexattr_t{};
             auto error = pthread_mutexattr_init(&attr);
@@ -261,7 +256,7 @@ namespace oqpi {
 
             pthread_mutexattr_destroy(&attr);
 
-            if (lockImmediately)
+            if (lockOnCreation)
             {
                 oqpi_verify(lock());
             }

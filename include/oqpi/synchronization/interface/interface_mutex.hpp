@@ -11,7 +11,7 @@ namespace oqpi { namespace itfc {
     //----------------------------------------------------------------------------------------------
     template
     <
-        // Platform specific implementation for semaphores
+        // Platform specific implementation for mutex
           typename _Impl
         // Augmentation layer, needs to be templated and inherit from the implementation
         , template<typename> typename _Layer
@@ -40,11 +40,11 @@ namespace oqpi { namespace itfc {
 
         //------------------------------------------------------------------------------------------
         explicit mutex(const std::string &name)
-            : base_type(name, sync_object_creation_options::open_or_create, false)
+            : base_type(name, sync_object_creation_options::open_or_create, true)
         {}
 
         //------------------------------------------------------------------------------------------
-        mutex(const std::string &name, sync_object_creation_options creationOption, bool lockOnCreation = false)
+        mutex(const std::string &name, sync_object_creation_options creationOption, bool lockOnCreation = true)
             : base_type(name, creationOption, lockOnCreation)
         {}
 

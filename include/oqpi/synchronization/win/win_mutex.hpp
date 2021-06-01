@@ -32,7 +32,7 @@ namespace oqpi {
             else
             {
                 handle_ = CreateMutexA(nullptr, lockOnCreation, name.empty() ? nullptr : name.c_str());
-                if (creationOption == sync_object_creation_options::create_if_nonexistent && GetLastError() == ERROR_ALREADY_EXISTS)
+                if ((handle_ != nullptr) && (creationOption == sync_object_creation_options::create_if_nonexistent) && (GetLastError() == ERROR_ALREADY_EXISTS))
                 {
                     CloseHandle(handle_);
                     handle_ = nullptr;

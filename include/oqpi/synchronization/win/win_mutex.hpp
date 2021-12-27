@@ -113,7 +113,7 @@ namespace oqpi {
         bool internalWait(DWORD dwMilliseconds, BOOL bAlertable)
         {
             const auto result = WaitForSingleObjectEx(handle_, dwMilliseconds, bAlertable);
-            if (oqpi_failed(result == WAIT_OBJECT_0 || result == WAIT_TIMEOUT))
+            if (result == WAIT_FAILED)
             {
                 oqpi_error("WaitForSingleObjectEx failed with error code 0x%x", GetLastError());
             }

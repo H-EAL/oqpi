@@ -194,6 +194,15 @@
     <ClInclude Include="..\..\include\oqpi\synchronization\posix\posix_semaphore.hpp">
       <Filter>include\synchronization\posix</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\synchronization\win\win_sync.hpp">
+      <Filter>include\synchronization\win</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\synchronization\posix\posix_sync.hpp">
+      <Filter>include\synchronization\posix</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\oqpi\synchronization\sync.hpp">
+      <Filter>include\synchronization</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="oqpi.natvis" />

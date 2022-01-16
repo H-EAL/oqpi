@@ -1,5 +1,6 @@
 #pragma once
 
+#include "oqpi/synchronization/sync.hpp"
 #include "oqpi/synchronization/event.hpp"
 #include "oqpi/synchronization/mutex.hpp"
 #include "oqpi/synchronization/semaphore.hpp"

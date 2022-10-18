@@ -55,6 +55,8 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         win_semaphore(win_semaphore &&other)
             : handle_(other.handle_)
+            , initCount_(other.initCount_)
+            , maxCount_(other.maxCount_)
         {
             other.handle_ = nullptr;
         }
@@ -64,7 +66,9 @@ namespace oqpi {
         {
             if (this != &rhs)
             {
-                handle_ = rhs.handle_;
+                handle_     = rhs.handle_;
+                initCount_  = rhs.initCount_;
+                maxCount_   = rhs.maxCount_;
                 rhs.handle_ = nullptr;
             }
             return (*this);

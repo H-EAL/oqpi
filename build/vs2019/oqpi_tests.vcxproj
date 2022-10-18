@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\test\catch_amalgamated.cpp" />
     <ClCompile Include="..\..\test\oqpi_tests.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">-D_SCL_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">-D_SCL_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
@@ -27,6 +28,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\test\catch_amalgamated.hpp" />
+    <ClInclude Include="..\..\test\event_tests.hpp" />
+    <ClInclude Include="..\..\test\mutex_tests.hpp" />
+    <ClInclude Include="..\..\test\parallel_algorithms_tests.hpp" />
+    <ClInclude Include="..\..\test\scheduling_tests.hpp" />
+    <ClInclude Include="..\..\test\semaphore_tests.hpp" />
+    <ClInclude Include="..\..\test\synchronization_tests.hpp" />
+    <ClInclude Include="..\..\test\sync_tests.hpp" />
+    <ClInclude Include="..\..\test\test_utils.hpp" />
+    <ClInclude Include="..\..\test\threading_tests.hpp" />
     <ClInclude Include="..\..\test\timer_contexts.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

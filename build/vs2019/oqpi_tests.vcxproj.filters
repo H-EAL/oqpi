@@ -1,19 +1,58 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
+    <Filter Include="tests">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="tests\_catch">
+      <UniqueIdentifier>{67781122-485f-47ac-9bd2-45ed637bd974}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests\_tests">
+      <UniqueIdentifier>{59196ff7-3745-4d5f-8235-12217129aa7b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\test\oqpi_tests.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test\catch_amalgamated.cpp">
+      <Filter>tests\_catch</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\test\timer_contexts.hpp">
-      <Filter>Source Files</Filter>
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test\catch_amalgamated.hpp">
+      <Filter>tests\_catch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test\parallel_algorithms_tests.hpp">
+      <Filter>tests\_tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test\scheduling_tests.hpp">
+      <Filter>tests\_tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test\threading_tests.hpp">
+      <Filter>tests\_tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test\test_utils.hpp">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test\synchronization_tests.hpp">
+      <Filter>tests\_tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test\event_tests.hpp">
+      <Filter>tests\_tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test\mutex_tests.hpp">
+      <Filter>tests\_tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test\semaphore_tests.hpp">
+      <Filter>tests\_tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test\sync_tests.hpp">
+      <Filter>tests\_tests</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

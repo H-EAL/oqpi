@@ -94,7 +94,7 @@ namespace oqpi {
             if(error == 0)
             {
                 pThreadAttr = &threadAttr;
-                pthread_attr_setdetachstate(pThreadAttr, attributes.detached_);
+                pthread_attr_setdetachstate(pThreadAttr, false);
 
                 auto set = cpu_set_t{};
                 // Clears set, so that it contains no CPUs.

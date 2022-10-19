@@ -9,16 +9,30 @@ TEST_CASE("Events.", "[event]")
                 = oqpi::auto_reset_event("", oqpi::sync_object_creation_options::create_if_nonexistent);
             REQUIRE(autoResetEvent.isValid());
 
-            oqpi::thread("autoResetThread", [&autoResetEvent]()
-            {
-                autoResetEvent.notify();
-            }).join();
+            auto notifiedOnThread1 = false;
+            auto notifiedOnThread2 = false;
 
-            auto notified = autoResetEvent.waitFor(std::chrono::seconds(10));
-            REQUIRE(notified);
+            auto thread1 = oqpi::thread("autoResetThread1", [&autoResetEvent, &notifiedOnThread1]()
+            {
+                notifiedOnThread1 = autoResetEvent.waitFor(std::chrono::seconds(1));
+            });
+
+            auto thread2 = oqpi::thread("autoResetThread2", [&autoResetEvent, &notifiedOnThread2]()
+            {
+                notifiedOnThread2 = autoResetEvent.waitFor(std::chrono::seconds(1));
+            });
+
+            autoResetEvent.notify();
+
+            thread1.join();
+            thread2.join();
+
+            // Either thread1 or thread2 got notified.
+            const auto success = (notifiedOnThread1 && !notifiedOnThread2) || (!notifiedOnThread1 && notifiedOnThread2);
+            REQUIRE(success);
 
             // As this is an auto reset event it should be automatically set to the non_signalled state after being signaled and waited upon once.
-            notified = autoResetEvent.waitFor(std::chrono::microseconds(1));
+            auto notified = autoResetEvent.waitFor(std::chrono::microseconds(1));
             REQUIRE(!notified);
         }
         SECTION("Manual Reset.")
@@ -27,17 +41,31 @@ TEST_CASE("Events.", "[event]")
                 = oqpi::manual_reset_event("", oqpi::sync_object_creation_options::create_if_nonexistent);
             REQUIRE(manualResetEvent.isValid());
 
-            oqpi::thread("manualResetThread", [&manualResetEvent]()
-            {
-                manualResetEvent.notify();
-            }).join();
+            auto notifiedOnThread1 = false;
+            auto notifiedOnThread2 = false;
 
-            auto notified = manualResetEvent.waitFor(std::chrono::seconds(10));
-            REQUIRE(notified);
+            auto thread1 = oqpi::thread("manualResetThread1", [&manualResetEvent, &notifiedOnThread1]()
+            {
+                notifiedOnThread1 = manualResetEvent.waitFor(std::chrono::seconds(1));
+            });
+
+            auto thread2 = oqpi::thread("manualResetThread2", [&manualResetEvent, &notifiedOnThread2]()
+            {
+                notifiedOnThread2 = manualResetEvent.waitFor(std::chrono::seconds(1));
+            });
+
+            manualResetEvent.notify();
+
+            thread1.join();
+            thread2.join();
+
+            // Both thread1 or thread2 should have gotten notified.
+            const auto success = notifiedOnThread1 && notifiedOnThread2;
+            REQUIRE(success);
 
             // As this is a manual reset event, it should only be set to the nonsignaled state after an explicit call to reset(). 
             // Therefore in the call below it should be notified.
-            notified = manualResetEvent.waitFor(std::chrono::microseconds(1));
+            auto notified = manualResetEvent.waitFor(std::chrono::microseconds(1));
             REQUIRE(notified);
 
             manualResetEvent.reset();

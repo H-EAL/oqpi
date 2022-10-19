@@ -3,13 +3,8 @@ TEST_CASE("Sync.", "[sync]")
 {
     SECTION("wait_indefinitely_for_any")
     {
-        // Make events, a mutex and semaphores. Only the local semaphore is in a signaled state.
-        // wait_indefinitely_for_any should return the index number of that semaphore i.e. 3.
-
-        auto lockOnCreation = true;
-
-        auto mutex
-            = oqpi::global_mutex("Global\\oqpiTestMutex", oqpi::sync_object_creation_options::create_if_nonexistent, lockOnCreation);
+        // Make two events and two semaphores. Only the local semaphore is in a signaled state.
+        // wait_indefinitely_for_any should return the index number of that semaphore i.e. 2.
 
         auto autoResetEvent
             = oqpi::auto_reset_event("Local\\oqpiTestEvent", oqpi::sync_object_creation_options::create_if_nonexistent);
@@ -27,8 +22,8 @@ TEST_CASE("Sync.", "[sync]")
         auto globalSemaphore
             = oqpi::global_semaphore("Global\\oqpiTestSemaphore", oqpi::sync_object_creation_options::create_if_nonexistent, initCount);
 
-        auto result = oqpi::sync::wait_indefinitely_for_any(mutex, autoResetEvent, globalManualResetEvent, semaphore, globalSemaphore);
-
-        REQUIRE(result  == 3);
+        auto result = oqpi::sync::wait_indefinitely_for_any(autoResetEvent, globalManualResetEvent, semaphore, globalSemaphore);
+        
+        REQUIRE(result == 2);
     }
 }

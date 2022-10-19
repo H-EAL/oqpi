@@ -1,7 +1,6 @@
 #define CATCH_CONFIG_MAIN
 #include "catch_amalgamated.hpp"
 
-
 #define OQPI_USE_DEFAULT
 #include "oqpi.hpp"
 
@@ -34,8 +33,13 @@ TEST_CASE("Setup.", "[cleanup]")
 
 #include "parallel_algorithms_tests.hpp"
 
-#include "synchronization_tests.hpp"
+#include "event_tests.hpp"
 
+#include "mutex_tests.hpp"
+
+#include "semaphore_tests.hpp"
+
+#include "sync_tests.hpp"
 
 TEST_CASE("Cleanup.", "[cleanup]")
 {

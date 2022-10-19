@@ -39,9 +39,6 @@
     <ClInclude Include="..\..\test\test_utils.hpp">
       <Filter>tests</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test\synchronization_tests.hpp">
-      <Filter>tests\_tests</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\test\event_tests.hpp">
       <Filter>tests\_tests</Filter>
     </ClInclude>

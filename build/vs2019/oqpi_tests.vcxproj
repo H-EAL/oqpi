@@ -34,7 +34,6 @@
     <ClInclude Include="..\..\test\parallel_algorithms_tests.hpp" />
     <ClInclude Include="..\..\test\scheduling_tests.hpp" />
     <ClInclude Include="..\..\test\semaphore_tests.hpp" />
-    <ClInclude Include="..\..\test\synchronization_tests.hpp" />
     <ClInclude Include="..\..\test\sync_tests.hpp" />
     <ClInclude Include="..\..\test\test_utils.hpp" />
     <ClInclude Include="..\..\test\threading_tests.hpp" />

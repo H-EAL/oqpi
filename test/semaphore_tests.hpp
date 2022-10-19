@@ -3,8 +3,8 @@ TEST_CASE("Semaphores.", "[semaphore]")
 {
     SECTION("Local Semaphore.")
     {
-        auto initCount  = 2u;
-        auto maxCount   = 3u;
+        const auto initCount  = 2u;
+        const auto maxCount   = 3u;
 
         auto semaphore = oqpi::semaphore("Local\\oqpiTestSemaphore", oqpi::sync_object_creation_options::open_or_create, initCount, maxCount);
         REQUIRE(semaphore.isValid());
@@ -33,8 +33,8 @@ TEST_CASE("Semaphores.", "[semaphore]")
     }
     SECTION("Global Semaphore.")
     {
-        auto initCount  = 2u;
-        auto maxCount   = 3u;
+        const auto initCount  = 2u;
+        const auto maxCount   = 3u;
 
         auto semaphore = oqpi::global_semaphore("Global\\oqpiTestSemaphore", oqpi::sync_object_creation_options::open_existing);
         REQUIRE(!semaphore.isValid());

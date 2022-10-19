@@ -150,11 +150,15 @@ namespace oqpi {
                 oqpi_error("sem_wait failed with error code %d", errno);
             }
 
+            // Only if its a manual reset event, then we also want to signal other potential waiters.
             // To signal other potential waiters, increment lock. Snowball effect.
-            error = sem_post(handle_);
-            if(error == -1)
+            if (_ResetPolicy::is_manual_reset_enabled())
             {
-                oqpi_error("sem_post failed with error code %d", errno);
+                error = sem_post(handle_);
+                if (error == -1)
+                {
+                    oqpi_error("sem_post failed with error code %d", errno);
+                }
             }
 
             return error != -1;
@@ -186,11 +190,15 @@ namespace oqpi {
             else if(error != -1)
             {
                 // Wait was successful.
-                // To signal other potential waiters, increment lock. Snowball effect.
-                error = sem_post(handle_);
-                if(error == -1)
+                // Only if its a manual reset event, then we also want to signal other potential waiters.
+                // increment lock. Snowball effect.
+                if (_ResetPolicy::is_manual_reset_enabled())
                 {
-                    oqpi_error("sem_post failed with error code %d", errno);
+                    error = sem_post(handle_);
+                    if (error == -1)
+                    {
+                        oqpi_error("sem_post failed with error code %d", errno);
+                    }
                 }
             }
             return error != -1;

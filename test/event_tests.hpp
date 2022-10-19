@@ -6,7 +6,7 @@ TEST_CASE("Events.", "[event]")
         SECTION("Auto Reset.")
         {
             auto autoResetEvent 
-                = oqpi::auto_reset_event("Local\\oqpiTestEvent", oqpi::sync_object_creation_options::create_if_nonexistent);
+                = oqpi::auto_reset_event("", oqpi::sync_object_creation_options::create_if_nonexistent);
             REQUIRE(autoResetEvent.isValid());
 
             oqpi::thread("autoResetThread", [&autoResetEvent]()
@@ -24,7 +24,7 @@ TEST_CASE("Events.", "[event]")
         SECTION("Manual Reset.")
         {
             auto manualResetEvent 
-                = oqpi::manual_reset_event("oqpiTestEvent", oqpi::sync_object_creation_options::create_if_nonexistent);
+                = oqpi::manual_reset_event("", oqpi::sync_object_creation_options::create_if_nonexistent);
             REQUIRE(manualResetEvent.isValid());
 
             oqpi::thread("manualResetThread", [&manualResetEvent]()

@@ -6,7 +6,7 @@ TEST_CASE("Semaphores.", "[semaphore]")
         const auto initCount  = 2u;
         const auto maxCount   = 3u;
 
-        auto semaphore = oqpi::semaphore("Local\\oqpiTestSemaphore", oqpi::sync_object_creation_options::open_or_create, initCount, maxCount);
+        auto semaphore = oqpi::semaphore("", oqpi::sync_object_creation_options::open_or_create, initCount, maxCount);
         REQUIRE(semaphore.isValid());
 
         auto success = semaphore.tryWait(); // semaphoreCount = 1.

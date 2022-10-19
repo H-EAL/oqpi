@@ -48,8 +48,6 @@ namespace oqpi {
         // The higher the priority the bigger the time slices this thread will be given in the 
         // underlying OS scheduler.
         thread_priority priority_;
-        // Whether or not to launch the thread detached
-        bool            detached_;
 
         // Constructor with default values, the name should always be specified
         thread_attributes
@@ -57,14 +55,12 @@ namespace oqpi {
             const std::string name,
             uint32_t stackSize              = 0u,
             core_affinity coreAffinityMask  = core_affinity::all_cores,
-            thread_priority priority        = thread_priority::normal,
-            bool detached                   = false
+            thread_priority priority        = thread_priority::normal
         )
             : name_             (name)
             , stackSize_        (stackSize)
             , coreAffinityMask_ (coreAffinityMask)
             , priority_         (priority)
-            , detached_         (detached)
         {}
     };
     //----------------------------------------------------------------------------------------------

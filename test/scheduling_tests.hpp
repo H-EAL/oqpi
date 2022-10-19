@@ -107,6 +107,5 @@ void test_scheduling()
 //--------------------------------------------------------------------------------------------------
 TEST_CASE("Scheduling (tasks, sequence groups, parallel groups).", "[scheduling]")
 {
-    // Does this make sense?
     CHECK_NOTHROW(test_scheduling());
 }

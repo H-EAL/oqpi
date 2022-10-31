@@ -36,13 +36,13 @@ TEST_CASE("Semaphores.", "[semaphore]")
         const auto initCount  = 2u;
         const auto maxCount   = 3u;
 
-        auto semaphore = oqpi::global_semaphore("Global\\oqpiTestSemaphore", oqpi::sync_object_creation_options::open_existing);
+        auto semaphore = oqpi::global_semaphore("/Global\\oqpiTestSemaphore", oqpi::sync_object_creation_options::open_existing);
         REQUIRE(!semaphore.isValid());
 
-        semaphore = oqpi::global_semaphore("Global\\oqpiTestSemaphore", oqpi::sync_object_creation_options::create_if_nonexistent, initCount, maxCount);
+        semaphore = oqpi::global_semaphore("/Global\\oqpiTestSemaphore", oqpi::sync_object_creation_options::create_if_nonexistent, initCount, maxCount);
         REQUIRE(semaphore.isValid());
 
-        auto semaphore2 = oqpi::global_semaphore("Global\\oqpiTestSemaphore", oqpi::sync_object_creation_options::open_existing);
+        auto semaphore2 = oqpi::global_semaphore("/Global\\oqpiTestSemaphore", oqpi::sync_object_creation_options::open_existing);
         REQUIRE(semaphore2.isValid());
 
         REQUIRE(semaphore.getName() == semaphore2.getName());

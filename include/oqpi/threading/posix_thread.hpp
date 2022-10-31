@@ -94,29 +94,14 @@ namespace oqpi {
             if(error == 0)
             {
                 pThreadAttr = &threadAttr;
-                pthread_attr_setdetachstate(pThreadAttr, false);
 
-                auto set = cpu_set_t{};
-                // Clears set, so that it contains no CPUs.
-                CPU_ZERO(&set);
-
-                if(attributes.coreAffinityMask_ == core_affinity::all_cores)
-                {
-                    // Fill the mask with 1's. -1 is represented in binary as 11111111.
-                    memset(&set, -1, sizeof(cpu_set_t));
-                }
-                else
-                {
-                    const auto coreNumber = static_cast<int32_t>(sqrt((double)(attributes.coreAffinityMask_)));
-                    CPU_SET(coreNumber, &set);
-                }
-
-                pthread_attr_setaffinity_np(pThreadAttr, sizeof(cpu_set_t), &set);
+                pthread_attr_setdetachstate(pThreadAttr, PTHREAD_CREATE_JOINABLE);
                 pthread_attr_setschedpolicy(pThreadAttr, POSIX_SCHED_POLICY);
 
-                const auto posix_priority = sched_param{ posix_thread_priority(attributes.priority_) };
-                pthread_attr_setschedparam(pThreadAttr, &posix_priority);
+                const auto posixPriority = sched_param { posix_thread_priority(attributes.priority_) };
+                pthread_attr_setschedparam(pThreadAttr, &posixPriority);
 
+                pthread_attr_setinheritsched(pThreadAttr, PTHREAD_EXPLICIT_SCHED);
                 pthread_attr_setstacksize(pThreadAttr, attributes.stackSize_);
             }
             else
@@ -136,6 +121,8 @@ namespace oqpi {
             {
                 pthread_attr_destroy(pThreadAttr);
             }
+
+            setCoreAffinityMask(attributes.coreAffinityMask_);
 
             return true;
         }
@@ -249,17 +236,7 @@ namespace oqpi {
             auto set = cpu_set_t{};
             // Clears set, so that it contains no CPUs.
             CPU_ZERO(&set);
-
-            if (affinityMask == core_affinity::all_cores)
-            {
-                // Fill the mask with 1's. -1 is represented in binary as 11111111.
-                memset(&set, -1, sizeof(cpu_set_t));
-            }
-            else
-            {
-                const auto coreNumber = static_cast<int32_t>(sqrt((double)(affinityMask)));
-                CPU_SET(coreNumber, &set);
-            }
+            memcpy(&set.__bits, &affinityMask, sizeof(affinityMask));
 
             // Make sure the selected mask is valid
             oqpi_check(static_cast<uint64_t>(affinityMask) < (1ull << hardware_concurrency()) || affinityMask == core_affinity::all_cores);
@@ -275,16 +252,16 @@ namespace oqpi {
         {
             auto affinity = core_affinity{};
             cpu_set_t set;
-            pthread_getaffinity_np(handle, sizeof(core_affinity), &set);
-            memcpy(&affinity, &set, sizeof(core_affinity));
+            pthread_getaffinity_np(handle, sizeof(cpu_set_t), &set);
+            memcpy(&affinity, &set.__bits, sizeof(core_affinity));
 
             return affinity;
         }
         //------------------------------------------------------------------------------------------
         static void set_priority(native_handle_type handle, thread_priority priority)
         {
-            const auto posixPriority = sched_param{ posix_thread_priority(priority) };
-            pthread_setschedparam(handle, POSIX_SCHED_POLICY, &posixPriority);
+            const auto posixPriority = posix_thread_priority(priority);
+            pthread_setschedprio(handle, posixPriority);
         }
         //------------------------------------------------------------------------------------------
         static thread_priority get_priority(native_handle_type handle)
@@ -343,8 +320,9 @@ namespace oqpi {
         static int posix_thread_priority(thread_priority prio)
         {
             // Priority between 0 and 1.
-            const auto prioFrac = static_cast<float>(prio) / (static_cast<float>(thread_priority::count) - 1);
-            return get_min_priority() + prioFrac * (get_max_priority() - get_min_priority());
+            const auto prioFrac     = static_cast<float>(prio) / (int32_t(thread_priority::count)- 1);
+            const auto posixPrio    = get_min_priority() + prioFrac * (get_max_priority() - get_min_priority());
+            return ceil(posixPrio);
         }
         //------------------------------------------------------------------------------------------
 

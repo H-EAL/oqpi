@@ -30,7 +30,18 @@ namespace oqpi {
         template<typename... _Args>
         local_sync_object(const std::string &, sync_object_creation_options, _Args &&...args)
             : local_sync_object(std::forward<_Args>(args)...)
-        {}
+        {
+            fail();
+        }
+
+        //------------------------------------------------------------------------------------------
+        // Clang will evaluate a static_assert(false) even if the function is never called
+        // So we must trick it to not evaluate it by templating the assert condition
+        template<bool _UndefinedFunction = false>
+        void fail()
+        {
+            static_assert(_UndefinedFunction, "A local synchronization object cannot have a name or creation option.");
+        }
     };
 
 

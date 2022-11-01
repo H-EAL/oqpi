@@ -36,7 +36,7 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         posix_event(const std::string &name, sync_object_creation_options creationOption)
                 : handle_(nullptr)
-                , name_(name)
+                , name_("/" + name)
         {
             const auto isLocalSyncObject = name.empty();
             if (isLocalSyncObject && creationOption != sync_object_creation_options::open_existing)
@@ -56,7 +56,7 @@ namespace oqpi {
                 // Create a named semaphore.
                 if (oqpi_failed(isNameValid()))
                 {
-                    oqpi_error("the name \"%s\" you provided is not valid for a posix semaphore.", name.c_str());
+                    oqpi_error("The name \"%s\" you provided is not valid for a posix semaphore.", name.c_str());
                     return;
                 }
 

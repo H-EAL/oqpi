@@ -23,7 +23,7 @@ namespace oqpi {
         task_group(_Scheduler &sc, const std::string &name, task_priority priority)
             : task_group_base(priority)
             , _GroupContext(this, name)
-            , notifier_type(task_base::getUID())
+            , notifier_type()
             , scheduler_(sc)
         {}
 

@@ -6,7 +6,7 @@ TEST_CASE("Events.", "[event]")
         SECTION("Auto Reset.")
         {
             auto autoResetEvent 
-                = oqpi::auto_reset_event("Local\\oqpiTestEvent", oqpi::sync_object_creation_options::create_if_nonexistent);
+                = oqpi::auto_reset_event("", oqpi::sync_object_creation_options::create_if_nonexistent);
             REQUIRE(autoResetEvent.isValid());
 
             oqpi::thread("autoResetThread", [&autoResetEvent]()
@@ -24,7 +24,7 @@ TEST_CASE("Events.", "[event]")
         SECTION("Manual Reset.")
         {
             auto manualResetEvent 
-                = oqpi::manual_reset_event("oqpiTestEvent", oqpi::sync_object_creation_options::create_if_nonexistent);
+                = oqpi::manual_reset_event("", oqpi::sync_object_creation_options::create_if_nonexistent);
             REQUIRE(manualResetEvent.isValid());
 
             oqpi::thread("manualResetThread", [&manualResetEvent]()
@@ -51,15 +51,15 @@ TEST_CASE("Events.", "[event]")
         SECTION("Auto Reset.")
         {
             auto autoResetEvent
-                = oqpi::global_auto_reset_event("Global\\oqpiTestEvent", oqpi::sync_object_creation_options::create_if_nonexistent);
+                = oqpi::global_auto_reset_event("/Global\\oqpiTestEvent", oqpi::sync_object_creation_options::create_if_nonexistent);
             REQUIRE(autoResetEvent.isValid());
 
             auto autoResetEvent2
-                = oqpi::global_auto_reset_event("Global\\oqpiTestEvent", oqpi::sync_object_creation_options::create_if_nonexistent);
+                = oqpi::global_auto_reset_event("/Global\\oqpiTestEvent", oqpi::sync_object_creation_options::create_if_nonexistent);
             REQUIRE(!autoResetEvent2.isValid());
 
             autoResetEvent2
-                = oqpi::global_auto_reset_event("Global\\oqpiTestEvent", oqpi::sync_object_creation_options::open_existing);
+                = oqpi::global_auto_reset_event("/Global\\oqpiTestEvent", oqpi::sync_object_creation_options::open_existing);
             REQUIRE(autoResetEvent2.isValid());
 
             autoResetEvent.notify();
@@ -73,15 +73,15 @@ TEST_CASE("Events.", "[event]")
         SECTION("Manual Reset.")
         {
             auto manualResetEvent
-                = oqpi::global_manual_reset_event("Global\\oqpiTestEvent", oqpi::sync_object_creation_options::create_if_nonexistent);
+                = oqpi::global_manual_reset_event("/Global\\oqpiTestEvent", oqpi::sync_object_creation_options::create_if_nonexistent);
             REQUIRE(manualResetEvent.isValid());
 
             auto manualResetEvent2
-                = oqpi::global_manual_reset_event("Global\\oqpiTestEvent", oqpi::sync_object_creation_options::create_if_nonexistent);
+                = oqpi::global_manual_reset_event("/Global\\oqpiTestEvent", oqpi::sync_object_creation_options::create_if_nonexistent);
             REQUIRE(!manualResetEvent2.isValid());
 
             manualResetEvent2
-                = oqpi::global_manual_reset_event("Global\\oqpiTestEvent", oqpi::sync_object_creation_options::open_existing);
+                = oqpi::global_manual_reset_event("/Global\\oqpiTestEvent", oqpi::sync_object_creation_options::open_existing);
             REQUIRE(manualResetEvent2.isValid());
 
             manualResetEvent.notify();

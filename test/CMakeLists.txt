@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 # Collect files and put them in source group folders
-file(GLOB_RECURSE files *)
+file(GLOB_RECURSE files CONFIGURE_DEPENDS *)
 foreach(file ${files})
     file(RELATIVE_PATH relFile ${CMAKE_CURRENT_SOURCE_DIR} ${file})
     get_filename_component(folder ${relFile} PATH)
@@ -16,7 +16,7 @@ add_executable(oqpi_tests ${files})
 #Set debug mode using _GLIBCXX_DEBUG macro
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_GLIBCXX_DEBUG")
 
-# Link with lrt
+# Link with lrt and pthread
 set(CMAKE_EXE_LINKER_FLAGS "-lrt")
 
 # Link with pthread

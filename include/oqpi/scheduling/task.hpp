@@ -28,7 +28,7 @@ namespace oqpi {
         task(const std::string &name, task_priority priority, _Func func)
             : task_base(priority)
             , _TaskContext(this, name)
-            , notifier_type(task_base::getUID())
+            , notifier_type()
             , func_(std::move(func))
         {}
 

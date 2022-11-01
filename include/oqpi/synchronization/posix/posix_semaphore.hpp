@@ -28,9 +28,9 @@ namespace oqpi {
         posix_semaphore(const std::string &name, sync_object_creation_options creationOption, int32_t initCount, int32_t maxCount)
                 : maxCount_(maxCount)
                 , handle_(nullptr)
-                , name_(name)
+                , name_("/" + name)
         {
-            const auto isLocalSyncObject = name_.empty();
+            const auto isLocalSyncObject = name.empty();
             if(isLocalSyncObject && creationOption != sync_object_creation_options::open_existing)
             {
                 // Create an unnamed semaphore.
@@ -54,7 +54,7 @@ namespace oqpi {
 
                 // If both O_CREAT and O_EXCL are specified, then an error is returned if a semaphore with the given
                 // name already exists. Otherwise it creates it.
-                handle_ = sem_open(name.c_str(), O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, initCount);
+                handle_ = sem_open(name_.c_str(), O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, initCount);
 
                 if(handle_ != SEM_FAILED && creationOption == sync_object_creation_options::open_existing)
                 {

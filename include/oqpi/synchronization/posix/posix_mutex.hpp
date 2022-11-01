@@ -40,11 +40,11 @@ namespace oqpi {
     protected:
         //------------------------------------------------------------------------------------------
         posix_mutex(const std::string &name, sync_object_creation_options creationOption, bool lockOnCreation)
-                : handle_(nullptr), name_(name) 
+                : handle_(nullptr), name_("/" + name)
         {
-            if (oqpi_failed(isNameValid(name)))
+            if (oqpi_failed(isNameValid()))
             {
-                oqpi_error("the name \"%s\" you provided is not valid for shared memory.", name_.c_str());
+                oqpi_error("The name \"%s\" you provided is not valid for shared memory.", name.c_str());
                 return;
             }
 
@@ -209,7 +209,7 @@ namespace oqpi {
                 handle_ = nullptr;
             }
 
-            if(isNameValid((name_)))
+            if(isNameValid())
             {
                 unlinkSharedMemory();
                 name_ = "";
@@ -271,12 +271,12 @@ namespace oqpi {
         }
 
         //------------------------------------------------------------------------------------------
-        bool isNameValid(const std::string &name) const
+        bool isNameValid() const
         {
             // Note that name must be in the form of /somename; that is, a null-terminated string of up to NAME_MAX
             // characters consisting of an initial slash, followed by one or more characters, none of which are slashes.
-            return (name.length() < NAME_MAX && name.length() > 1 && name[0] == '/'
-                    && std::find(name.begin() + 1, name.end(), '/') == name.end());
+            return (name_.length() < NAME_MAX && name_.length() > 1 && name_[0] == '/'
+                    && std::find(name_.begin() + 1, name_.end(), '/') == name_.end());
         }
 
     private:

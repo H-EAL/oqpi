@@ -36,9 +36,9 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         posix_event(const std::string &name, sync_object_creation_options creationOption)
                 : handle_(nullptr)
-                , name_("/" + name)
+                , name_(name.empty() ? "" : "/" + name)
         {
-            const auto isLocalSyncObject = name.empty();
+            const auto isLocalSyncObject = name_.empty();
             if (isLocalSyncObject && creationOption != sync_object_creation_options::open_existing)
             {
                 // Create an unnamed semaphore.

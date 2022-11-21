@@ -290,7 +290,7 @@ namespace oqpi {
             if(error != 0)
             {
                 // Name must be max 16 characters long.
-                oqpi_warning("Unable to set name for thread, error code %d", error);
+                oqpi_warning("Unable to set name for thread. Know that name may be max 16 characters long. error code %d", error);
             }
         }
         //------------------------------------------------------------------------------------------

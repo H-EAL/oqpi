@@ -1,11 +1,8 @@
 #pragma once
 
-#include <sys/mman.h>
-#include <sys/stat.h>
+#include <semaphore.h>
 #include <fcntl.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <limits.h>
+#include <sys/stat.h>
 
 #include "oqpi/platform.hpp"
 #include "oqpi/error_handling.hpp"
@@ -23,105 +20,49 @@ namespace oqpi {
     {
     protected:
         //------------------------------------------------------------------------------------------
-        struct mutex_wrapper
-        {
-            ~mutex_wrapper()
-            {
-                pthread_mutex_destroy(&mutex);
-            }
-
-            pthread_mutex_t mutex;
-        };
-
-    protected:
-        //------------------------------------------------------------------------------------------
-        using native_handle_type = mutex_wrapper*;
+        using native_handle_type = sem_t*;
 
     protected:
         //------------------------------------------------------------------------------------------
         posix_mutex(const std::string &name, sync_object_creation_options creationOption, bool lockOnCreation)
-                : handle_(nullptr), name_("/" + name)
+                : handle_(nullptr)
+                , name_("/" + name)
         {
+            // Create a named semaphore.
             if (oqpi_failed(isNameValid()))
             {
-                oqpi_error("The name \"%s\" you provided is not valid for shared memory.", name.c_str());
+                oqpi_error("the name \"%s\" you provided is not valid for a posix semaphore.", name.c_str());
                 return;
             }
 
-            // Mode applies only to future accesses of the newly created file.
-            auto mode           = S_IRUSR;
-            auto flags          = O_CREAT | O_EXCL | O_RDWR;
-            auto fileDescriptor = shm_open(name_.c_str(), flags, mode);
+            // A mutex is simply a binary semaphore!
 
-            // Open existing mutex.
-            if (fileDescriptor == -1 && creationOption != sync_object_creation_options::create_if_nonexistent)
+            // If both O_CREAT and O_EXCL are specified, then an error is returned if a semaphore with the given
+            // name already exists. Otherwise it creates it.
+            constexpr auto initCount = 1u;
+            handle_ = sem_open(name_.c_str(), O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, initCount);
+
+            if(handle_ != SEM_FAILED && creationOption == sync_object_creation_options::open_existing)
             {
-                // If O_EXCL and O_CREAT are specified, and a shared memory object with the given name already exists,
-                // an error is returned.
-
-                // Remove flags (O_EXCL, O_CREAT) and try to open shared memory that already exists.
-                flags &= ~O_CREAT;
-                flags &= ~O_EXCL;
-
-                while (fileDescriptor == -1)
-                {
-                    // Now since if the mode is still S_IRUSR, then shm_open with O_RDWR flags will fail until write permission given (after mutex was initialized).
-                    fileDescriptor = shm_open(name_.c_str(), flags, 0);
-                    if (fileDescriptor == -1)
-                    {
-                        if (errno == EACCES)
-                        {
-                            // If errno == EACCES, then caller does not have write permission on the object. Mutex is currently being initialized. Sleep 10 ms.
-                            const auto timeToSleep = timespec{ 0, (long)1e7 };
-                            nanosleep(&timeToSleep, NULL);
-                        }
-                        else
-                        {
-                            oqpi_error("shm_open failed with error code %d", errno);
-                            oqpi_error("Was not able to properly get handle of global mutex.");
-                            release();
-                            return;
-                        }
-                    }
-                }
-
-                // Map the object into the caller's address space.
-                handle_ = reinterpret_cast<mutex_wrapper *>(mmap(NULL, sizeof(*handle_), PROT_READ | PROT_WRITE,
-                    MAP_SHARED, fileDescriptor, 0));
+                // We've created a semaphore even though given the open_existing creation option.
+                oqpi_error("Trying to open an existing semaphore that doesn't exist.");
+                release();
+                return;
             }
-            // Create new mutex.
-            else if(fileDescriptor != -1 && creationOption != sync_object_creation_options::open_existing)
+
+            // Open a semaphore
+            if(handle_ == SEM_FAILED &&
+               (creationOption == sync_object_creation_options::open_existing
+                || creationOption == sync_object_creation_options::open_or_create))
             {
-                // Allocate shared memory.
-                if(ftruncate(fileDescriptor, sizeof(mutex_wrapper)) == -1)
-                {
-                    oqpi_error("ftruncate() failed with error code %d", errno);
-                    release();
-                    close(fileDescriptor);
-                    return;
-                }
-
-                // Map the object into the caller's address space.
-                handle_ = reinterpret_cast<mutex_wrapper *>(mmap(NULL, sizeof(*handle_), PROT_READ | PROT_WRITE,
-                    MAP_SHARED, fileDescriptor, 0));
-
-                if(!initMutex(lockOnCreation))
-                {
-                    release();
-                    close(fileDescriptor);
-                    return;
-                }
-
-                // Now allow for read and write access.
-                fchmod(fileDescriptor, S_IRUSR | S_IWUSR);
+                handle_ = sem_open(name.c_str(), O_CREAT, S_IRUSR | S_IWUSR, 0);
             }
-            else
+
+            if (handle_ == SEM_FAILED)
             {
-                oqpi_error("Was not able to open or create a posix_mutex with the creation option specified.");
+                oqpi_error("sem_open failed with error %d", errno);
                 release();
             }
-
-            close(fileDescriptor);
         }
 
         //------------------------------------------------------------------------------------------
@@ -168,34 +109,53 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         bool lock() 
         {
-            return pthread_mutex_lock(&handle_->mutex) == 0;
+            const auto error = sem_wait(handle_);
+            if(error == -1)
+            {
+                oqpi_error("sem_wait failed with error code %d", errno);
+            }
+            return error == 0;
         }
 
         //------------------------------------------------------------------------------------------
         bool tryLock() 
         {
-            return pthread_mutex_trylock(&handle_->mutex) == 0;
+            const auto error = sem_trywait(handle_);
+            // errno is set to EAGAIN if the decrement cannot be immediately performed (i.e. semaphore has value 0).
+            if(error == -1 && errno != EAGAIN)
+            {
+                oqpi_error("sem_trywait failed with error code %d", errno);
+            }
+            return error == 0;
         }
 
         //------------------------------------------------------------------------------------------
         template<typename _Rep, typename _Period>
         bool tryLockFor(const std::chrono::duration<_Rep, _Period> &relTime) 
         {
-            auto nanoseconds    = std::chrono::duration_cast<std::chrono::nanoseconds>(relTime);
-            const auto secs     = std::chrono::duration_cast<std::chrono::seconds>(nanoseconds);
-            nanoseconds         -= secs;
-            const auto timeout  = timespec{secs.count(), nanoseconds.count()};
+            auto nanoseconds  = std::chrono::duration_cast<std::chrono::nanoseconds>(relTime);
+            const auto secs   = std::chrono::duration_cast<std::chrono::seconds>(nanoseconds);
+            nanoseconds       -= secs;
 
-            return pthread_mutex_timedlock(&handle_->mutex, &timeout) == 0;
+            timespec t;
+            t.tv_sec    = secs.count();
+            t.tv_nsec   = nanoseconds.count();
+
+            const auto error = sem_timedwait(handle_, &t);
+            if(error == -1 && errno != ETIMEDOUT)
+            {
+                oqpi_error("sem_timedwait failed with error code %d", errno);
+            }
+            return error == 0;
         }
 
         //------------------------------------------------------------------------------------------
         void unlock() 
         {
-            const auto error = pthread_mutex_unlock(&handle_->mutex);
-            if(error != 0)
+            auto error = sem_post(handle_);
+            if(error == -1)
             {
-                oqpi_error("pthread_mutex_unlock failed with error number %d", error);
+                oqpi_error("sem_post failed with error code %d", errno);
             }
         }
 
@@ -203,71 +163,12 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         void release()
         {
-            if (handle_ != nullptr)
+            if (handle_)
             {
-                unmapSharedMemory();
+                sem_close(handle_);
+                sem_unlink(name_.c_str());
                 handle_ = nullptr;
             }
-
-            if(isNameValid())
-            {
-                unlinkSharedMemory();
-                name_ = "";
-            }
-        }
-
-        //------------------------------------------------------------------------------------------
-        void unmapSharedMemory()
-        {
-            // Removes any mappings for those entire pages containing any part of the address space of the process starting at handle_.
-            const auto error = munmap(handle_, sizeof(*handle_));
-            if (error == -1)
-            {
-                oqpi_error("munmap failed with error code %d", errno);
-            }
-        }
-
-        //------------------------------------------------------------------------------------------
-        void unlinkSharedMemory()
-        {
-            // Removes shared memory object name, and, once all processes have unmapped the object, de-allocates and destroys the contents
-            // of the associated memory region.
-            const auto error = shm_unlink(name_.c_str());
-            if (error == -1)
-            {
-                oqpi_error("shm_unlink failed with error code %d", errno);
-            }
-        }
-
-        //------------------------------------------------------------------------------------------
-        bool initMutex(bool lockOnCreation)
-        {
-            auto attr  = pthread_mutexattr_t{};
-            auto error = pthread_mutexattr_init(&attr);
-            if (error != 0)
-            {
-                oqpi_error("pthread_mutexattr_init failed with error number %d", error);
-                pthread_mutexattr_destroy(&attr);
-                return false;
-            }
-
-            pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
-            pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
-
-            error = pthread_mutex_init(&handle_->mutex, &attr);
-            pthread_mutexattr_destroy(&attr);
-            if (error != 0)
-            {
-                oqpi_error("pthread_mutex_init failed with error number %d", error);
-                return false;
-            }
-
-            if (lockOnCreation)
-            {
-                oqpi_verify(lock());
-            }
-
-            return true;
         }
 
         //------------------------------------------------------------------------------------------

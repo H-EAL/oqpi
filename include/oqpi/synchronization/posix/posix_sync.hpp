@@ -13,10 +13,10 @@ namespace oqpi {
     {
     public:
         //------------------------------------------------------------------------------------------
-        template<typename ..._SyncObjects>
+        template<typename ..._SyncObjects, bool _False = false>
         static auto wait_indefinitely_for_any(_SyncObjects &&...syncObjects)
         {
-            static_assert(false, "Not implemented yet.");
+            static_assert(_False, "Not implemented yet.");
             return 0;
         }
     };

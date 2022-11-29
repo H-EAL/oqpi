@@ -20,7 +20,6 @@ TEST_CASE("Mutexes.", "[mutex]")
         lockSucceeded = mutex.tryLockFor(std::chrono::microseconds(1u));
         REQUIRE(lockSucceeded);
 
-
         // Test mutex destruction.
         {
             mutex = oqpi::global_mutex("Global\\oqpiTestMutex2", oqpi::sync_object_creation_options::create_if_nonexistent);

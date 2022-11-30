@@ -39,7 +39,7 @@ TEST_CASE("Setup.", "[cleanup]")
 
 #include "semaphore_tests.hpp"
 
-#include "sync_tests.hpp"
+//#include "sync_tests.hpp"
 
 TEST_CASE("Cleanup.", "[cleanup]")
 {

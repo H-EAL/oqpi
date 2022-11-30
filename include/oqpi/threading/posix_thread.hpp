@@ -355,9 +355,10 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         inline void yield() noexcept
         {
-            // Causes the calling thread to yield execution to another thread that is ready to run
-            // on the current processor. The operating system selects the next thread to be executed.
-            pthread_yield();
+            // sched_yield() causes the calling thread to relinquish the CPU.
+            // The thread is moved to the end of the queue for its static priority and a new thread
+            // gets to run.
+            sched_yield();
         }
         //------------------------------------------------------------------------------------------
         inline void set_priority(thread_priority threadPriority)

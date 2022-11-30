@@ -39,7 +39,7 @@ namespace oqpi {
 
             // If both O_CREAT and O_EXCL are specified, then an error is returned if a semaphore with the given
             // name already exists. Otherwise it creates it.
-            constexpr auto initCount = 1u;
+            const auto initCount = lockOnCreation ? 0u : 1u;
             handle_ = sem_open(name_.c_str(), O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, initCount);
 
             if(handle_ != SEM_FAILED && creationOption == sync_object_creation_options::open_existing)

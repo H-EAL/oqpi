@@ -26,9 +26,9 @@ namespace oqpi {
     protected:
         //------------------------------------------------------------------------------------------
         posix_semaphore(const std::string &name, sync_object_creation_options creationOption, int32_t initCount, int32_t maxCount)
-                : maxCount_(maxCount)
-                , handle_(nullptr)
-                , name_("/" + name)
+            : maxCount_(maxCount)
+            , handle_(nullptr)
+            , name_("/" + name)
         {
             const auto isLocalSyncObject = name.empty();
             if(isLocalSyncObject && creationOption != sync_object_creation_options::open_existing)

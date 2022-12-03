@@ -35,8 +35,8 @@ namespace oqpi {
     protected:
         //------------------------------------------------------------------------------------------
         posix_event(const std::string &name, sync_object_creation_options creationOption)
-                : handle_(nullptr)
-                , name_("/" + name)
+            : handle_(nullptr)
+            , name_("/" + name)
         {
             const auto isLocalSyncObject = name.empty();
             if (isLocalSyncObject && creationOption != sync_object_creation_options::open_existing)

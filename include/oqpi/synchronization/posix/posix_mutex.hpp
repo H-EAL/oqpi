@@ -25,9 +25,9 @@ namespace oqpi {
     protected:
         //------------------------------------------------------------------------------------------
         posix_mutex(const std::string &name, sync_object_creation_options creationOption, bool lockOnCreation)
-                : handle_(nullptr)
-                , unlockHandle_(nullptr)
-                , name_("/" + name)
+            : handle_(nullptr)
+            , unlockHandle_(nullptr)
+            , name_("/" + name)
         {
             // Named posix semaphores have name requirements.
             if (oqpi_failed(isNameValid()))

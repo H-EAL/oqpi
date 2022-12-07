@@ -25,44 +25,42 @@ namespace oqpi {
     protected:
         //------------------------------------------------------------------------------------------
         posix_mutex(const std::string &name, sync_object_creation_options creationOption, bool lockOnCreation)
-                : handle_(nullptr)
-                , name_("/" + name)
+            : handle_(nullptr)
+            , unlockHandle_(nullptr)
+            , name_("/" + name)
         {
-            // Create a named semaphore.
+            // Named posix semaphores have name requirements.
             if (oqpi_failed(isNameValid()))
             {
-                oqpi_error("the name \"%s\" you provided is not valid for a posix semaphore.", name.c_str());
+                oqpi_error("The name \"%s\" you provided is not valid for a posix semaphore.", name.c_str());
                 return;
             }
 
-            // A mutex is simply a binary semaphore!
-
-            // If both O_CREAT and O_EXCL are specified, then an error is returned if a semaphore with the given
-            // name already exists. Otherwise it creates it.
-            const auto initCount = lockOnCreation ? 0u : 1u;
-            handle_ = sem_open(name_.c_str(), O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, initCount);
-
-            if(handle_ != SEM_FAILED && creationOption == sync_object_creation_options::open_existing)
+            // Need to make sure these two mutexes (handle_ and unlockHandle_) are initialized atomically. 
+            // Otherwise not thread safe. An example of a bad race condition that could arise:
+            // Thread 1 creates handle_ with lockOnCreation = true. Yields.
+            // Thread 2 opens handle_ with lockOnCreation = false. Then creates unlockHandle_ and locks it.
+            // Thread 1 opens unlockHandle_.
+            // Now handle_ and unlockHandle_ are locked, which will stop it from handle_ from being unlocked (check unlock()).
+            executeAtomically([this, creationOption, lockOnCreation]()
             {
-                // We've created a semaphore even though given the open_existing creation option.
-                oqpi_error("Trying to open an existing semaphore that doesn't exist.");
-                release();
-                return;
-            }
+                // A mutex is simply a binary semaphore!
+                if (!initBinarySemaphore(handle_, creationOption, name_, lockOnCreation))
+                {
+                    oqpi_error("Failed to create mutex %s with creation options specified.", name_.c_str());
+                    release();
+                    return;
+                }
 
-            // Open a semaphore
-            if(handle_ == SEM_FAILED &&
-               (creationOption == sync_object_creation_options::open_existing
-                || creationOption == sync_object_creation_options::open_or_create))
-            {
-                handle_ = sem_open(name.c_str(), O_CREAT, S_IRUSR | S_IWUSR, 0);
-            }
-
-            if (handle_ == SEM_FAILED)
-            {
-                oqpi_error("sem_open failed with error %d", errno);
-                release();
-            }
+                // Create the helper mutex which will be used by the unlock() function.
+                // When the main mutex is locked (is unlockable) the helper mutex is unlocked (is lockable).
+                const auto helperLockOnCreation = !lockOnCreation;
+                if (!initBinarySemaphore(unlockHandle_, sync_object_creation_options::open_or_create, getNameOfUnlockHandle(), helperLockOnCreation))
+                {
+                    oqpi_error("Failed to create the helper mutex (unlockHandle_) for mutex %s.", name_.c_str());
+                    release();
+                }
+            });
         }
 
         //------------------------------------------------------------------------------------------
@@ -73,10 +71,11 @@ namespace oqpi {
 
         //------------------------------------------------------------------------------------------
         posix_mutex(posix_mutex &&other)
-                : handle_(other.handle_), name_(other.name_) 
+                : handle_(other.handle_), unlockHandle_(other.unlockHandle_), name_(other.name_)
         {
-            other.handle_   = nullptr;
-            other.name_     = "";
+            other.handle_       = nullptr;
+            other.unlockHandle_ = nullptr;
+            other.name_         = "";
         }
 
         //------------------------------------------------------------------------------------------
@@ -84,10 +83,12 @@ namespace oqpi {
         {
             if (this != &rhs && !isValid())
             {
-                handle_     = rhs.handle_;
-                name_       = rhs.name_;
-                rhs.handle_ = nullptr;
-                rhs.name_   = "";
+                handle_             = rhs.handle_;
+                unlockHandle_       = rhs.unlockHandle_;
+                name_               = rhs.name_;
+                rhs.handle_         = nullptr;
+                rhs.unlockHandle_   = nullptr;
+                rhs.name_           = "";
             }
             return (*this);
         }
@@ -109,12 +110,7 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         bool lock() 
         {
-            const auto error = sem_wait(handle_);
-            if(error == -1)
-            {
-                oqpi_error("sem_wait failed with error code %d", errno);
-            }
-            return error == 0;
+            return lock(handle_);
         }
 
         //------------------------------------------------------------------------------------------
@@ -152,40 +148,132 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         void unlock() 
         {
+            oqpi_ensure(lock(unlockHandle_));
+
+            // The unlockHandle_ is used to make unlocking handle_ thread safe.
+            // 
+            // Without it there could be this situation:
+            // Two threads call unlock() at the same time.
+            // Thread 1 gets semValue of 0 from sem_getvalue, then yields.
+            // Thread 2 gets semValue of 0 from sem_getvalue and proceeds to unlock, semValue = 1.
+            // Thread 1 still has a semValue of 0 and unlocks the mutex, semValue = 2.
+            // Thread 1 and 2 have unlocked the mutex.
+            // semValue = 2, and the mutex can now be locked by two threads.
             auto semValue = 0;
             sem_getvalue(handle_, &semValue);
-            if (semValue > 1)
+            if (semValue >= 1)
             {
                 oqpi_error("You cannot unlock a mutex more than once.");
                 return;
             }
 
-            auto error = sem_post(handle_);
-            if(error == -1)
-            {
-                oqpi_error("sem_post failed with error code %d", errno);
-            }
+            unlock(handle_);
+
+            unlock(unlockHandle_);
         }
 
     private:
         //------------------------------------------------------------------------------------------
+        bool initBinarySemaphore(native_handle_type &handle, sync_object_creation_options creationOption, const std::string &name, bool lockOnCreation)
+        {
+            // If both O_CREAT and O_EXCL are specified, then it succeeds if it creates a new semaphore.
+            // An error is returned if a semaphore with the given name already exists.
+            const auto initCount = lockOnCreation ? 0u : 1u;
+            handle = sem_open(name.c_str(), O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, initCount);
+
+            if(handle != SEM_FAILED && creationOption == sync_object_creation_options::open_existing)
+            {
+                // We've created a semaphore even though given the open_existing creation option.
+                oqpi_error("Trying to open an existing semaphore that doesn't exist.");
+                return false;
+            }
+
+            // Open a semaphore
+            if(handle == SEM_FAILED &&
+               (creationOption == sync_object_creation_options::open_existing
+                || creationOption == sync_object_creation_options::open_or_create))
+            {
+                handle = sem_open(name.c_str(), O_CREAT, S_IRUSR | S_IWUSR, 0);
+            }
+
+            if (handle == SEM_FAILED)
+            {
+                oqpi_error("sem_open failed with error %d", errno);
+                return false;
+            }
+
+            return true;
+        }
+
+        //------------------------------------------------------------------------------------------
+        template<typename _Func>
+        void executeAtomically(_Func &&func)
+        {
+            native_handle_type tempHandle;
+            const auto tempHandleName = name_ + "_a";
+
+            oqpi_ensure(initBinarySemaphore(tempHandle, sync_object_creation_options::open_or_create, tempHandleName, false));
+            oqpi_ensure(lock(tempHandle));
+
+            func();
+
+            unlock(tempHandle);
+            release(tempHandle, tempHandleName);
+        }
+
+        //------------------------------------------------------------------------------------------
         void release()
         {
-            if (handle_)
+            release(handle_, name_);
+            release(unlockHandle_, getNameOfUnlockHandle());
+        }
+
+        //------------------------------------------------------------------------------------------
+        void release(native_handle_type &handle, const std::string &name)
+        {
+            if (handle)
             {
-                sem_close(handle_);
-                sem_unlink(name_.c_str());
-                handle_ = nullptr;
+                sem_close(handle);
+                sem_unlink(name.c_str());
+                handle = nullptr;
             }
         }
 
         //------------------------------------------------------------------------------------------
         bool isNameValid() const
         {
+            const auto nameToCheck = getNameOfUnlockHandle();
             // Note that name must be in the form of /somename; that is, a null-terminated string of up to NAME_MAX
             // characters consisting of an initial slash, followed by one or more characters, none of which are slashes.
-            return (name_.length() < NAME_MAX && name_.length() > 1 && name_[0] == '/'
-                    && std::find(name_.begin() + 1, name_.end(), '/') == name_.end());
+            return (nameToCheck.length() < NAME_MAX && nameToCheck.length() > 1 && nameToCheck[0] == '/'
+                    && std::find(nameToCheck.begin() + 1, nameToCheck.end(), '/') == nameToCheck.end());
+        }
+
+        //------------------------------------------------------------------------------------------
+        std::string getNameOfUnlockHandle() const
+        {
+            return name_ + "_lock";
+        }
+
+        //------------------------------------------------------------------------------------------
+        bool lock(native_handle_type handle)
+        {
+            const auto error = sem_wait(handle);
+            if (error == -1)
+            {
+                oqpi_error("sem_wait failed with error code %d", errno);
+            }
+            return error == 0;
+        }
+
+        //------------------------------------------------------------------------------------------
+        void unlock(native_handle_type handle)
+        {
+            auto error = sem_post(handle);
+            if (error == -1)
+            {
+                oqpi_error("sem_post failed with error code %d", errno);
+            }
         }
 
     private:
@@ -199,5 +287,9 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         native_handle_type  handle_;
         std::string         name_;
+        //------------------------------------------------------------------------------------------
+        // This is used to make the posix_mutex::unlock() thread-safe.
+        // Has opposite semaphore value (1 or 0) to handle_. unlockHandle_ == !handle_.
+        native_handle_type  unlockHandle_;
     };
 } /*oqpi*/

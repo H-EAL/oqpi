@@ -22,8 +22,8 @@ TEST_CASE("Mutexes.", "[mutex]")
 
         // Test mutex destruction.
         {
-            mutex = oqpi::global_mutex("Global\\oqpiTestMutex2", oqpi::sync_object_creation_options::create_if_nonexistent);
-            REQUIRE(mutex.isValid());
+            auto mutex3 = oqpi::global_mutex("Global\\oqpiTestMutex2", oqpi::sync_object_creation_options::create_if_nonexistent);
+            REQUIRE(mutex3.isValid());
         }
 
         mutex = oqpi::global_mutex("Global\\oqpiTestMutex2", oqpi::sync_object_creation_options::create_if_nonexistent);

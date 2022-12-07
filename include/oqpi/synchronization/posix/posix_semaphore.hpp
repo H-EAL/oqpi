@@ -28,9 +28,9 @@ namespace oqpi {
         posix_semaphore(const std::string &name, sync_object_creation_options creationOption, int32_t initCount, int32_t maxCount)
                 : maxCount_(maxCount)
                 , handle_(nullptr)
-                , name_("/" + name)
+                , name_(name.empty() ? "" : "/" + name)
         {
-            const auto isLocalSyncObject = name.empty();
+            const auto isLocalSyncObject = name_.empty();
             if(isLocalSyncObject && creationOption != sync_object_creation_options::open_existing)
             {
                 // Create an unnamed semaphore.
@@ -168,15 +168,20 @@ namespace oqpi {
         template<typename _Rep, typename _Period>
         bool waitFor(const std::chrono::duration<_Rep, _Period>& relTime)
         {
-            auto nanoseconds  = std::chrono::duration_cast<std::chrono::nanoseconds>(relTime);
-            const auto secs   = std::chrono::duration_cast<std::chrono::seconds>(nanoseconds);
-            nanoseconds       -= secs;
-
             timespec t;
-            t.tv_sec    = secs.count();
-            t.tv_nsec   = nanoseconds.count();
+            if (clock_gettime(CLOCK_REALTIME, &t) == -1)
+            {
+                oqpi_error("clock_gettime failed with error code %d", errno);
+                return false;
+            }
 
-            const auto error = sem_timedwait(handle_, &t);
+            auto nanoseconds    = std::chrono::duration_cast<std::chrono::nanoseconds>(relTime);
+            const auto secs     = std::chrono::duration_cast<std::chrono::seconds>(nanoseconds);
+            nanoseconds         -= secs;
+            t.tv_sec            += secs.count();
+            t.tv_nsec           += nanoseconds.count();
+
+            const auto error    = sem_timedwait(handle_, &t);
             if(error == -1 && errno != ETIMEDOUT)
             {
                 oqpi_error("sem_timedwait failed with error code %d", errno);

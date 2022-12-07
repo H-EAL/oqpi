@@ -133,15 +133,20 @@ namespace oqpi {
         template<typename _Rep, typename _Period>
         bool tryLockFor(const std::chrono::duration<_Rep, _Period> &relTime) 
         {
-            auto nanoseconds  = std::chrono::duration_cast<std::chrono::nanoseconds>(relTime);
-            const auto secs   = std::chrono::duration_cast<std::chrono::seconds>(nanoseconds);
-            nanoseconds       -= secs;
-
             timespec t;
-            t.tv_sec    = secs.count();
-            t.tv_nsec   = nanoseconds.count();
+            if (clock_gettime(CLOCK_REALTIME, &t) == -1)
+            {
+                oqpi_error("clock_gettime failed with error code %d", errno);
+                return false;
+            }
 
-            const auto error = sem_timedwait(handle_, &t);
+            auto nanoseconds    = std::chrono::duration_cast<std::chrono::nanoseconds>(relTime);
+            const auto secs     = std::chrono::duration_cast<std::chrono::seconds>(nanoseconds);
+            nanoseconds         -= secs;
+            t.tv_sec            += secs.count();
+            t.tv_nsec           += nanoseconds.count();
+
+            const auto error    = sem_timedwait(handle_, &t);
             if(error == -1 && errno != ETIMEDOUT)
             {
                 oqpi_error("sem_timedwait failed with error code %d", errno);
@@ -154,7 +159,7 @@ namespace oqpi {
         {
             auto semValue = 0;
             sem_getvalue(handle_, &semValue);
-            if (semValue > 1)
+            if (semValue >= 1)
             {
                 oqpi_error("You cannot unlock a mutex more than once.");
                 return;

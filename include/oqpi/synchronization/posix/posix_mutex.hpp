@@ -1,12 +1,9 @@
 #pragma once
 
-#include <semaphore.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-
 #include "oqpi/platform.hpp"
 #include "oqpi/error_handling.hpp"
 #include "oqpi/synchronization/sync_common.hpp"
+#include "oqpi/synchronization/posix/posix_semaphore_wrapper.hpp"
 
 
 namespace oqpi {
@@ -25,69 +22,25 @@ namespace oqpi {
     protected:
         //------------------------------------------------------------------------------------------
         posix_mutex(const std::string &name, sync_object_creation_options creationOption, bool lockOnCreation)
-                : handle_(nullptr)
-                , name_("/" + name)
+            : sem_()
         {
-            // Create a named semaphore.
-            if (oqpi_failed(isNameValid()))
-            {
-                oqpi_error("the name \"%s\" you provided is not valid for a posix semaphore.", name.c_str());
-                return;
-            }
-
             // A mutex is simply a binary semaphore!
-
-            // If both O_CREAT and O_EXCL are specified, then an error is returned if a semaphore with the given
-            // name already exists. Otherwise it creates it.
-            const auto initCount = lockOnCreation ? 0u : 1u;
-            handle_ = sem_open(name_.c_str(), O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, initCount);
-
-            if(handle_ != SEM_FAILED && creationOption == sync_object_creation_options::open_existing)
-            {
-                // We've created a semaphore even though given the open_existing creation option.
-                oqpi_error("Trying to open an existing semaphore that doesn't exist.");
-                release();
-                return;
-            }
-
-            // Open a semaphore
-            if(handle_ == SEM_FAILED &&
-               (creationOption == sync_object_creation_options::open_existing
-                || creationOption == sync_object_creation_options::open_or_create))
-            {
-                handle_ = sem_open(name.c_str(), O_CREAT, S_IRUSR | S_IWUSR, 0);
-            }
-
-            if (handle_ == SEM_FAILED)
-            {
-                oqpi_error("sem_open failed with error %d", errno);
-                release();
-            }
-        }
-
-        //------------------------------------------------------------------------------------------
-        ~posix_mutex() 
-        {
-            release();
+            const auto initCount    = lockOnCreation ? 0u : 1u;
+            sem_                    = posix_semaphore_wrapper(name, creationOption, initCount);
         }
 
         //------------------------------------------------------------------------------------------
         posix_mutex(posix_mutex &&other)
-                : handle_(other.handle_), name_(other.name_) 
+            : sem_(std::move(other.sem_))
         {
-            other.handle_   = nullptr;
-            other.name_     = "";
         }
 
         //------------------------------------------------------------------------------------------
         posix_mutex &operator=(posix_mutex &&rhs) 
         {
-            if (this != &rhs && !isValid())
+            if (this != &rhs)
             {
-                handle_     = rhs.handle_;
-                name_       = rhs.name_;
-                rhs.handle_ = nullptr;
-                rhs.name_   = "";
+                sem_ = std::move(rhs.sem_);
             }
             return (*this);
         }
@@ -97,100 +50,45 @@ namespace oqpi {
         // User interface
         native_handle_type getNativeHandle() const 
         {
-            return handle_;
+            return sem_.getHandle();
         }
 
         //------------------------------------------------------------------------------------------
         bool isValid() const 
         {
-            return handle_ != nullptr;
+            return sem_.isValid();
         }
 
         //------------------------------------------------------------------------------------------
         bool lock() 
         {
-            const auto error = sem_wait(handle_);
-            if(error == -1)
-            {
-                oqpi_error("sem_wait failed with error code %d", errno);
-            }
-            return error == 0;
+            return sem_.wait();
         }
 
         //------------------------------------------------------------------------------------------
         bool tryLock() 
         {
-            const auto error = sem_trywait(handle_);
-            // errno is set to EAGAIN if the decrement cannot be immediately performed (i.e. semaphore has value 0).
-            if(error == -1 && errno != EAGAIN)
-            {
-                oqpi_error("sem_trywait failed with error code %d", errno);
-            }
-            return error == 0;
+            return sem_.tryWait();
         }
 
         //------------------------------------------------------------------------------------------
         template<typename _Rep, typename _Period>
         bool tryLockFor(const std::chrono::duration<_Rep, _Period> &relTime) 
         {
-            timespec t;
-            if (clock_gettime(CLOCK_REALTIME, &t) == -1)
-            {
-                oqpi_error("clock_gettime failed with error code %d", errno);
-                return false;
-            }
-
-            auto nanoseconds    = std::chrono::duration_cast<std::chrono::nanoseconds>(relTime);
-            const auto secs     = std::chrono::duration_cast<std::chrono::seconds>(nanoseconds);
-            nanoseconds         -= secs;
-            t.tv_sec            += secs.count();
-            t.tv_nsec           += nanoseconds.count();
-
-            const auto error    = sem_timedwait(handle_, &t);
-            if(error == -1 && errno != ETIMEDOUT)
-            {
-                oqpi_error("sem_timedwait failed with error code %d", errno);
-            }
-            return error == 0;
+            return sem_.waitFor(relTime);
         }
 
         //------------------------------------------------------------------------------------------
         void unlock() 
         {
-            auto semValue = 0;
-            sem_getvalue(handle_, &semValue);
+            const auto semValue = sem_.getValue();
             if (semValue >= 1)
             {
                 oqpi_error("You cannot unlock a mutex more than once.");
                 return;
             }
 
-            auto error = sem_post(handle_);
-            if(error == -1)
-            {
-                oqpi_error("sem_post failed with error code %d", errno);
-            }
-        }
-
-    private:
-        //------------------------------------------------------------------------------------------
-        void release()
-        {
-            if (handle_)
-            {
-                sem_close(handle_);
-                sem_unlink(name_.c_str());
-                handle_ = nullptr;
-            }
-        }
-
-        //------------------------------------------------------------------------------------------
-        bool isNameValid() const
-        {
-            // Note that name must be in the form of /somename; that is, a null-terminated string of up to NAME_MAX
-            // characters consisting of an initial slash, followed by one or more characters, none of which are slashes.
-            return (name_.length() < NAME_MAX && name_.length() > 1 && name_[0] == '/'
-                    && std::find(name_.begin() + 1, name_.end(), '/') == name_.end());
+            sem_.post();
         }
 
     private:
@@ -202,7 +100,6 @@ namespace oqpi {
 
     private:
         //------------------------------------------------------------------------------------------
-        native_handle_type  handle_;
-        std::string         name_;
+        posix_semaphore_wrapper sem_;
     };
 } /*oqpi*/

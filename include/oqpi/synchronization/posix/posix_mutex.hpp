@@ -47,7 +47,7 @@ namespace oqpi {
                 // A mutex is simply a binary semaphore!
                 if (!initBinarySemaphore(handle_, creationOption, name_, lockOnCreation))
                 {
-                    oqpi_error("Failed to create mutex %s with creation options specified.", name_);
+                    oqpi_error("Failed to create mutex %s with creation options specified.", name_.c_str());
                     release();
                     return;
                 }
@@ -57,7 +57,7 @@ namespace oqpi {
                 const auto helperLockOnCreation = !lockOnCreation;
                 if (!initBinarySemaphore(unlockHandle_, sync_object_creation_options::open_or_create, getNameOfUnlockHandle(), helperLockOnCreation))
                 {
-                    oqpi_error("Failed to create the helper mutex (unlockHandle_) for mutex %s.", name_);
+                    oqpi_error("Failed to create the helper mutex (unlockHandle_) for mutex %s.", name_.c_str());
                     release();
                 }
             });

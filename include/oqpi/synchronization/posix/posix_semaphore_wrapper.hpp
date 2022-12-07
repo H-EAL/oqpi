@@ -1,3 +1,5 @@
+#pragma once
+
 #include <semaphore.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -176,7 +178,7 @@ namespace oqpi {
 
             // If both O_CREAT and O_EXCL are specified, then an error is returned if a semaphore with the given
             // name already exists. Otherwise it creates it.
-            handle_ = sem_open(name.c_str(), O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, initCount);
+            handle_ = sem_open(name_.c_str(), O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, initCount);
 
             if (handle_ != SEM_FAILED && creationOption == sync_object_creation_options::open_existing)
             {
@@ -190,7 +192,7 @@ namespace oqpi {
                 (creationOption == sync_object_creation_options::open_existing
                     || creationOption == sync_object_creation_options::open_or_create))
             {
-                handle_ = sem_open(name.c_str(), O_CREAT, S_IRUSR | S_IWUSR, 0);
+                handle_ = sem_open(name_.c_str(), O_CREAT, S_IRUSR | S_IWUSR, 0);
             }
 
             if (handle_ == SEM_FAILED)
@@ -241,7 +243,7 @@ namespace oqpi {
         void releaseGlobalSemaphore()
         {
             sem_close(handle_);
-            sem_unlink(name.c_str());
+            sem_unlink(name_.c_str());
         }
 
 

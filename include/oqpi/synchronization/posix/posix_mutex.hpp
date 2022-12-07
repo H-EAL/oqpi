@@ -159,7 +159,7 @@ namespace oqpi {
         {
             auto semValue = 0;
             sem_getvalue(handle_, &semValue);
-            if (semValue > 1)
+            if (semValue >= 1)
             {
                 oqpi_error("You cannot unlock a mutex more than once.");
                 return;

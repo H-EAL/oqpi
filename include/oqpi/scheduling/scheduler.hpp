@@ -129,6 +129,44 @@ namespace oqpi {
         }
 
         //------------------------------------------------------------------------------------------
+        template <class _Rep1, class _Period1, class _Rep2, class _Period2>
+        void waitUntilIdle(std::chrono::duration<_Rep1, _Period1> sleepPeriod, std::chrono::duration<_Rep2, _Period2> maxWaitTime) const
+        {
+            const auto then = std::chrono::high_resolution_clock::now();
+
+            while (!isIdle())
+            {
+                this_thread::sleep_for(sleepPeriod);
+                if (std::chrono::high_resolution_clock::now() - then > maxWaitTime)
+                {
+                    break;
+                }
+            }
+        }
+
+        //------------------------------------------------------------------------------------------
+        bool isIdle() const
+        {
+            for (const auto &taskQueue : pendingTasks_)
+            {
+                if (!taskQueue.empty())
+                {
+                    return false;
+                }
+            }
+
+            for (const auto &upWorker : workers_)
+            {
+                if (!upWorker->isAvailable())
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        //------------------------------------------------------------------------------------------
         // Number of workers registered no matter the priority
         int workersTotalCount() const
         {

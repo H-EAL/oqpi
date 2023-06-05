@@ -1,8 +1,9 @@
 *.db
 *.opendb
 *.TMP
-tmp/
+temp/
 *.sdf
 bin/
 *.user
 build/vs2019/.vs/
+cmake-build*

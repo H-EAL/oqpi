@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\test\catch_amalgamated.cpp" />
-    <ClCompile Include="..\..\test\oqpi_tests.cpp">
+    <ClCompile Include="..\..\tests\catch_amalgamated.cpp" />
+    <ClCompile Include="..\..\tests\oqpi_tests.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">-D_SCL_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">-D_SCL_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-D_SCL_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
@@ -28,16 +28,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\test\catch_amalgamated.hpp" />
-    <ClInclude Include="..\..\test\event_tests.hpp" />
-    <ClInclude Include="..\..\test\mutex_tests.hpp" />
-    <ClInclude Include="..\..\test\parallel_algorithms_tests.hpp" />
-    <ClInclude Include="..\..\test\scheduling_tests.hpp" />
-    <ClInclude Include="..\..\test\semaphore_tests.hpp" />
-    <ClInclude Include="..\..\test\sync_tests.hpp" />
-    <ClInclude Include="..\..\test\test_utils.hpp" />
-    <ClInclude Include="..\..\test\threading_tests.hpp" />
-    <ClInclude Include="..\..\test\timer_contexts.hpp" />
+    <ClInclude Include="..\..\tests\catch_amalgamated.hpp" />
+    <ClInclude Include="..\..\tests\event_tests.hpp" />
+    <ClInclude Include="..\..\tests\mutex_tests.hpp" />
+    <ClInclude Include="..\..\tests\parallel_algorithms_tests.hpp" />
+    <ClInclude Include="..\..\tests\scheduling_tests.hpp" />
+    <ClInclude Include="..\..\tests\semaphore_tests.hpp" />
+    <ClInclude Include="..\..\tests\sync_tests.hpp" />
+    <ClInclude Include="..\..\tests\test_utils.hpp" />
+    <ClInclude Include="..\..\tests\threading_tests.hpp" />
+    <ClInclude Include="..\..\tests\timer_contexts.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A9C9C6AB-AEF1-49A3-95DA-53338680D7A7}</ProjectGuid>
@@ -92,25 +92,25 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IntDir>..\..\tmp\$(ProjectName)\$(PlatformTarget)\$(Configuration)\</IntDir>
+    <IntDir>..\..\temp\$(ProjectName)\$(PlatformTarget)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_x86-d</TargetName>
     <OutDir>..\..\bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IntDir>..\..\tmp\$(ProjectName)\$(PlatformTarget)\$(Configuration)\</IntDir>
+    <IntDir>..\..\temp\$(ProjectName)\$(PlatformTarget)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_x64-d</TargetName>
     <OutDir>..\..\bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IntDir>..\..\tmp\$(ProjectName)\$(PlatformTarget)\$(Configuration)\</IntDir>
+    <IntDir>..\..\temp\$(ProjectName)\$(PlatformTarget)\$(Configuration)\</IntDir>
     <OutDir>..\..\bin\</OutDir>
     <TargetName>$(ProjectName)_x86</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IntDir>..\..\tmp\$(ProjectName)\$(PlatformTarget)\$(Configuration)\</IntDir>
+    <IntDir>..\..\temp\$(ProjectName)\$(PlatformTarget)\$(Configuration)\</IntDir>
     <OutDir>..\..\bin\</OutDir>
     <TargetName>$(ProjectName)_x64</TargetName>
   </PropertyGroup>

@@ -13,42 +13,42 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\test\oqpi_tests.cpp">
+    <ClCompile Include="..\..\tests\oqpi_tests.cpp">
       <Filter>tests</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test\catch_amalgamated.cpp">
+    <ClCompile Include="..\..\tests\catch_amalgamated.cpp">
       <Filter>tests\_catch</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\test\timer_contexts.hpp">
+    <ClInclude Include="..\..\tests\timer_contexts.hpp">
       <Filter>tests</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test\catch_amalgamated.hpp">
+    <ClInclude Include="..\..\tests\catch_amalgamated.hpp">
       <Filter>tests\_catch</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test\parallel_algorithms_tests.hpp">
+    <ClInclude Include="..\..\tests\parallel_algorithms_tests.hpp">
       <Filter>tests\_tests</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test\scheduling_tests.hpp">
+    <ClInclude Include="..\..\tests\scheduling_tests.hpp">
       <Filter>tests\_tests</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test\threading_tests.hpp">
+    <ClInclude Include="..\..\tests\threading_tests.hpp">
       <Filter>tests\_tests</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test\test_utils.hpp">
+    <ClInclude Include="..\..\tests\test_utils.hpp">
       <Filter>tests</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test\event_tests.hpp">
+    <ClInclude Include="..\..\tests\event_tests.hpp">
       <Filter>tests\_tests</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test\mutex_tests.hpp">
+    <ClInclude Include="..\..\tests\mutex_tests.hpp">
       <Filter>tests\_tests</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test\semaphore_tests.hpp">
+    <ClInclude Include="..\..\tests\semaphore_tests.hpp">
       <Filter>tests\_tests</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test\sync_tests.hpp">
+    <ClInclude Include="..\..\tests\sync_tests.hpp">
       <Filter>tests\_tests</Filter>
     </ClInclude>
   </ItemGroup>

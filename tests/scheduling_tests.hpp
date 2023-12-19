@@ -14,7 +14,7 @@ void test_unit_task()
 {
     TEST_FUNC;
 
-    auto spTask = oqpi_tk::make_task("Fibonacci4x", oqpi::task_priority::normal, []
+    auto spTask = oqpi_tk::make_task("FibonacciPerCore", oqpi::task_priority::normal, []
     {
         for (int i = 0; i < gTaskCount; ++i)
         {

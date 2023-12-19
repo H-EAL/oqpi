@@ -186,6 +186,25 @@ namespace oqpi {
             }
         }
         //------------------------------------------------------------------------------------------
+        void terminate()
+        {
+            if (handle_ == 0)
+            {
+                oqpi_warning("Trying to terminate a non joinable thread.");
+                return;
+            }
+
+            const auto error = pthread_kill(handle_);
+            if (error == 0)
+            {
+                handle_ = 0;
+            }
+            else
+            {
+                oqpi_error("pthread_kill failed with error code: %d", error);
+            }
+        }
+        //------------------------------------------------------------------------------------------
 
 
         //------------------------------------------------------------------------------------------

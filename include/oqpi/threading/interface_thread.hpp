@@ -113,6 +113,7 @@ namespace oqpi { namespace itfc {
         bool                joinable()                                  const   { return thread_impl::joinable();                    }
         void                join()                                              { return thread_impl::join();                        }
         void                detach()                                            { return thread_impl::detach();                      }
+        void                terminate()                                         { return thread_impl::terminate();                   }
 
         void                cancelSynchronousIO()                               { return thread_impl::cancelSynchronousIO();         }
                                         

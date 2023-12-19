@@ -170,6 +170,26 @@ namespace oqpi {
             }
         }
         //------------------------------------------------------------------------------------------
+        void terminate()
+        {
+            if (handle_ == nullptr)
+            {
+                oqpi_warning("Trying to terminate a non joinable thread.");
+                return;
+            }
+
+            const auto result = TerminateThread(handle_, EXIT_FAILURE);
+            if (result == TRUE)
+            {
+                handle_ = nullptr;
+                id_ = 0;
+            }
+            else
+            {
+                oqpi_error("TerminateThread failed with error code: %d", GetLastError());
+            }
+        }
+        //------------------------------------------------------------------------------------------
 
 
         //------------------------------------------------------------------------------------------

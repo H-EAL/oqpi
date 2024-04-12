@@ -38,6 +38,9 @@ namespace oqpi {
         using self_type = helpers<_Scheduler, _DefaultGroupContext, _DefaultTaskContext, _EventType>;
 
         //------------------------------------------------------------------------------------------
+        using default_thread = thread_interface<>;
+
+        //------------------------------------------------------------------------------------------
         static constexpr auto default_priority = task_priority::normal;
 
 
@@ -50,10 +53,9 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         // Start the scheduler with a default workers configuration
         template<typename _WorkerContext = empty_worker_context>
-        inline static void start_default_scheduler()
+        inline static void start_default_scheduler(int32_t workerCount = default_thread::hardware_concurrency())
         {
             // Use the default thread and semaphore (without any layer)
-            using default_thread    = thread_interface<>;
             using default_semaphore = semaphore_interface<>;
 
             auto config = oqpi::worker_config{};
@@ -65,8 +67,8 @@ namespace oqpi {
             config.threadAttributes.priority_           = oqpi::thread_priority::highest;
             // Workers can work on any task priority.
             config.workerPrio                           = oqpi::worker_priority::wprio_any;
-            // Start as many workers as there are cores.
-            config.count                                = default_thread::hardware_concurrency();
+            // Start as many workers as requested.
+            config.count                                = workerCount;
 
             scheduler_.template registerWorker<default_thread, default_semaphore, _WorkerContext>(config);
             // Fire it up!

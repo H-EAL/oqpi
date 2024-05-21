@@ -194,14 +194,14 @@ namespace oqpi {
                 return;
             }
 
-            const auto error = pthread_kill(handle_);
+            const auto error = pthread_cancel(handle_);
             if (error == 0)
             {
                 handle_ = 0;
             }
             else
             {
-                oqpi_error("pthread_kill failed with error code: %d", error);
+                oqpi_error("pthread_cancel failed with error code: %d", error);
             }
         }
         //------------------------------------------------------------------------------------------

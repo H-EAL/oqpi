@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <math.h>
 #include <cstring>
+#include <sys/resource.h>
 
 #include "oqpi/platform.hpp"
 #include "oqpi/error_handling.hpp"
@@ -88,6 +89,7 @@ namespace oqpi {
             auto pThreadAttr    = (pthread_attr_t*)(nullptr);
             auto threadAttr     = pthread_attr_t{};
             auto error          = pthread_attr_init(&threadAttr);
+            auto rlim           = rlimit{};
 
             // On Linux init always succeeds (but portable and future-proof applications
             // should nevertheless handle a possible error return).
@@ -95,14 +97,48 @@ namespace oqpi {
             {
                 pThreadAttr = &threadAttr;
 
-                pthread_attr_setdetachstate(pThreadAttr, PTHREAD_CREATE_JOINABLE);
-                pthread_attr_setschedpolicy(pThreadAttr, POSIX_SCHED_POLICY);
+                error = pthread_attr_setdetachstate(pThreadAttr, PTHREAD_CREATE_JOINABLE);
+                if(error != 0)
+                {
+                    oqpi_error("pthread_attr_setdetachstate failed with error number: %d", error);
+                }
 
-                const auto posixPriority = sched_param { posix_thread_priority(attributes.priority_) };
-                pthread_attr_setschedparam(pThreadAttr, &posixPriority);
+                error = pthread_attr_setschedpolicy(pThreadAttr, POSIX_SCHED_POLICY);
+                if(error != 0)
+                {
+                    oqpi_error("pthread_attr_setschedpolicy failed with error number: %d", error);
+                }
 
-                pthread_attr_setinheritsched(pThreadAttr, PTHREAD_EXPLICIT_SCHED);
-                pthread_attr_setstacksize(pThreadAttr, attributes.stackSize_);
+                error = getrlimit(__RLIMIT_RTPRIO, &rlim);
+                if(error != 0)
+                {
+                    oqpi_error("getrlimit failed with error number: %d", error);
+                }
+
+                if(rlim.rlim_cur != 0)
+                {
+                    const auto posixPriority = sched_param { posix_thread_priority(attributes.priority_) };
+                    error = pthread_attr_setschedparam(pThreadAttr, &posixPriority);
+                    if(error != 0)
+                    {
+                        oqpi_error("pthread_attr_setschedparam failed with error number: %d", error);
+                    }
+
+                    error = pthread_attr_setinheritsched(pThreadAttr, PTHREAD_EXPLICIT_SCHED);
+                    if(error != 0)
+                    {
+                        oqpi_error("pthread_attr_setinheritsched failed with error number: %d", error);
+                    }
+                }
+
+                if(attributes.stackSize_ > 0)
+                {
+                    error = pthread_attr_setstacksize(pThreadAttr, attributes.stackSize_);
+                    if(error != 0)
+                    {
+                        oqpi_error("pthread_attr_setstacksize failed with error number: %d", error);
+                    }
+                }
             }
             else
             {

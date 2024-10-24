@@ -229,7 +229,7 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         void setName(const char *name)
         {
-            set_name(id_, name);
+            set_name(handle_, name);
         }
         //------------------------------------------------------------------------------------------
 
@@ -302,32 +302,12 @@ namespace oqpi {
             return threadPriority;
         }
         //------------------------------------------------------------------------------------------
-        static void set_name(id threadId, const char *name)
+        static void set_name(native_handle_type handle, const char *name)
         {
-            #pragma pack(push,8)
-            struct THREADNAME_INFO
-            {
-                DWORD  dwType;       // Must be 0x1000.
-                LPCSTR szName;       // Pointer to name (in user addr space).
-                DWORD  dwThreadID;   // Thread ID (-1=caller thread).
-                DWORD  dwFlags;      // Reserved for future use, must be zero.
-            };
-            #pragma pack(pop)
-
-            THREADNAME_INFO info;
-            info.dwType     = 0x1000;
-            info.szName     = name;
-            info.dwThreadID = threadId;
-            info.dwFlags    = 0;
-
-            __try
-            {
-                static const auto MS_VC_EXCEPTION = DWORD{ 0x406D1388 };
-                RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)&info);
-            }
-            __except (EXCEPTION_EXECUTE_HANDLER)
-            {
-            }
+            auto convertedChars = size_t{0};
+            wchar_t wname[256] = {0};
+            mbstowcs_s(&convertedChars, wname, name, _TRUNCATE);
+            SetThreadDescription(handle, wname);
         }
         //------------------------------------------------------------------------------------------
 
@@ -336,6 +316,11 @@ namespace oqpi {
         static id get_current_thread_id()
         {
             return GetCurrentThreadId();
+        }
+        //------------------------------------------------------------------------------------------
+        static native_handle_type get_current_thread_native_handle()
+        {
+            return GetCurrentThread();
         }
         //------------------------------------------------------------------------------------------
 
@@ -371,7 +356,7 @@ namespace oqpi {
         //------------------------------------------------------------------------------------------
         inline void set_name(const char *name)
         {
-            win_thread::set_name(GetCurrentThreadId(), name);
+            win_thread::set_name(GetCurrentThread(), name);
         }
         //------------------------------------------------------------------------------------------
         template<typename _Rep, typename _Period>

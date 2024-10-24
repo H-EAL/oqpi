@@ -145,7 +145,7 @@ namespace oqpi { namespace itfc {
 
             inline void operator()()
             {
-                thread_impl::set_name(thread_impl::get_current_thread_id(), attributes_.name_.c_str());
+                thread_impl::set_name(thread_impl::get_current_thread_native_handle(), attributes_.name_.c_str());
                 run(std::make_integer_sequence<size_t, std::tuple_size<_Tuple>::value>());
             }
 

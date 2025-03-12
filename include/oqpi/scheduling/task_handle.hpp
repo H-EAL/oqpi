@@ -33,11 +33,11 @@ namespace oqpi {
 
         //------------------------------------------------------------------------------------------
         // Movable
-        task_handle(task_handle &&rhs)
+        task_handle(task_handle &&rhs) noexcept
             : spTask_(std::move(rhs.spTask_))
         {}
 
-        task_handle& operator =(task_handle &&rhs)
+        task_handle& operator =(task_handle &&rhs) noexcept
         {
             if (this != &rhs)
             {

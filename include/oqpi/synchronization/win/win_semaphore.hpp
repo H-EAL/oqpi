@@ -34,7 +34,7 @@ namespace oqpi {
             else
             {
                 handle_ = CreateSemaphoreA(nullptr, initCount_, maxCount_, name.empty() ? nullptr : name.c_str());
-                if (creationOption == sync_object_creation_options::create_if_nonexistent && GetLastError() == ERROR_ALREADY_EXISTS)
+                if (creationOption == sync_object_creation_options::create_if_nonexistent && GetLastError() == ERROR_ALREADY_EXISTS && handle_)
                 {
                     CloseHandle(handle_);
                     handle_ = nullptr;
@@ -53,7 +53,7 @@ namespace oqpi {
         }
 
         //------------------------------------------------------------------------------------------
-        win_semaphore(win_semaphore &&other)
+        win_semaphore(win_semaphore &&other) noexcept
             : handle_(other.handle_)
             , initCount_(other.initCount_)
             , maxCount_(other.maxCount_)
@@ -62,7 +62,7 @@ namespace oqpi {
         }
 
         //------------------------------------------------------------------------------------------
-        win_semaphore& operator =(win_semaphore &&rhs)
+        win_semaphore& operator =(win_semaphore &&rhs) noexcept
         {
             if (this != &rhs)
             {

@@ -52,7 +52,7 @@ namespace oqpi {
             other.id_       = 0;
         }
         //------------------------------------------------------------------------------------------
-        win_thread& operator =(win_thread &&rhs)
+        win_thread& operator =(win_thread &&rhs) noexcept
         {
             if (this != &rhs && oqpi_ensure(handle_ == nullptr && id_ == 0))
             {

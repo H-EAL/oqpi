@@ -42,7 +42,7 @@ namespace oqpi {
 
         //------------------------------------------------------------------------------------------
         // Can be moved
-        task_base(task_base &&other)
+        task_base(task_base &&other) noexcept
             : uid_(other.uid_)
             , spParentGroup_(std::move(other.spParentGroup_))
             , priority_(other.priority_)
@@ -51,7 +51,7 @@ namespace oqpi {
         {}
 
         //------------------------------------------------------------------------------------------
-        task_base& operator =(task_base &&rhs)
+        task_base& operator =(task_base &&rhs) noexcept
         {
             if (this != &rhs)
             {

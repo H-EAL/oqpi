@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdio>
+#include <cstdarg>
 #include <string>
 #include <cassert>
 #include <iostream>

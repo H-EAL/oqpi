@@ -48,8 +48,8 @@ namespace oqpi {
     public:
         //------------------------------------------------------------------------------------------
         // Creates the workers with a user defined context
-        template<typename _Thread, typename _Notifier, typename _WorkerContext>
-        void registerWorker(const worker_config &config)
+        template<typename _Thread, typename _Notifier, typename _WorkerContext, typename ..._Args>
+        void registerWorker(const worker_config &config, _Args &&...args)
         {
             for (int prio = 0; prio < PRIO_COUNT; ++prio)
             {
@@ -62,7 +62,7 @@ namespace oqpi {
             using worker_type = worker<_Thread, _Notifier, self_type, _WorkerContext>;
             for (int i = 0; i < config.count; ++i)
             {
-                workers_.emplace_back(std::make_unique<worker_type>(*this, i, config));
+                workers_.emplace_back(std::make_unique<worker_type>(*this, i, config, std::forward<_Args>(args)...));
             }
         }
         //------------------------------------------------------------------------------------------

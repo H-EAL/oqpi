@@ -13,9 +13,10 @@ namespace oqpi {
     {
     public:
         //------------------------------------------------------------------------------------------
-        worker(_Scheduler &sc, int32_t id, const worker_config &config)
+		template<typename... _Args>
+        worker(_Scheduler &sc, int32_t id, const worker_config &config, _Args &&...args)
             : worker_base(id, config)
-            , _WorkerContext(this)
+            , _WorkerContext(this, std::forward<_Args>(args)...)
             , scheduler_(sc)
             , notifier_()
             , running_(false)

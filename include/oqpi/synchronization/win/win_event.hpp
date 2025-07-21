@@ -65,7 +65,7 @@ namespace oqpi {
         }
 
         //------------------------------------------------------------------------------------------
-        win_event& operator =(win_event &&rhs)
+        win_event& operator =(win_event &&rhs) noexcept
         {
             if (this != &rhs)
             {

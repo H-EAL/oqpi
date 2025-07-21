@@ -56,7 +56,7 @@ namespace oqpi { namespace itfc {
         {}
 
         //------------------------------------------------------------------------------------------
-        inline self_type& operator =(self_type &&rhs)
+        inline self_type& operator =(self_type &&rhs) noexcept
         {
             if (this != &rhs)
             {

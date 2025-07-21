@@ -88,7 +88,7 @@ namespace oqpi {
             spTaskGroup->addTask(std::move(taskHandle));
         } 
 
-        return std::move(spTaskGroup);
+        return spTaskGroup;
     }
     //----------------------------------------------------------------------------------------------
 

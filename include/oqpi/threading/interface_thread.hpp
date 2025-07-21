@@ -78,7 +78,7 @@ namespace oqpi { namespace itfc {
             : base_type(std::move(other))
         {}
         //------------------------------------------------------------------------------------------
-        self_type& operator =(self_type &&rhs)
+        self_type& operator =(self_type &&rhs) noexcept
         {
             if (this != &rhs)
             {
@@ -86,7 +86,7 @@ namespace oqpi { namespace itfc {
                 {
                     std::terminate();
                 }
-                thread_impl::operator =(std::move(rhs));
+                base_type::operator =(std::move(rhs));
             }
             return (*this);
         }

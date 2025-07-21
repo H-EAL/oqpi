@@ -51,14 +51,14 @@ namespace oqpi {
         }
 
         //------------------------------------------------------------------------------------------
-        win_mutex(win_mutex &&other)
+        win_mutex(win_mutex &&other) noexcept
             : handle_(other.handle_)
         {
             other.handle_ = nullptr;
         }
 
         //------------------------------------------------------------------------------------------
-        win_mutex& operator =(win_mutex &&rhs)
+        win_mutex& operator =(win_mutex &&rhs) noexcept
         {
             if (this != &rhs)
             {

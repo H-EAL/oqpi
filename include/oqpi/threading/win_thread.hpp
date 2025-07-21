@@ -178,6 +178,7 @@ namespace oqpi {
                 return;
             }
 
+            __pragma(warning(suppress:6258))
             const auto result = TerminateThread(handle_, EXIT_FAILURE);
             if (result == TRUE)
             {

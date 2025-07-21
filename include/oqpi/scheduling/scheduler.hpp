@@ -179,7 +179,7 @@ namespace oqpi {
         int workersCount(task_priority prio) const
         {
             oqpi_checkf(prio < task_priority::count, "Invalid priority: %d", int(prio));
-            return workersPerPrio_[int(prio)];
+            return prio < task_priority::count ? workersPerPrio_[int(prio)] : 0;
         }
 
         //------------------------------------------------------------------------------------------

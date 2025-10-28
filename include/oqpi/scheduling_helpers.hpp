@@ -55,9 +55,6 @@ namespace oqpi {
         template<typename _WorkerContext = empty_worker_context>
         inline static void start_default_scheduler(int32_t workerCount = default_thread::hardware_concurrency())
         {
-            // Use the default thread and semaphore (without any layer)
-            using default_semaphore = semaphore_interface<>;
-
             auto config = oqpi::worker_config{};
             // Let the workers roam on all cores.
             config.threadAttributes.coreAffinityMask_   = oqpi::core_affinity::all_cores;
@@ -70,7 +67,7 @@ namespace oqpi {
             // Start as many workers as requested.
             config.count                                = workerCount;
 
-            scheduler_.template registerWorker<default_thread, default_semaphore, _WorkerContext>(config);
+            scheduler_.template registerWorker<default_thread, _WorkerContext>(config);
             // Fire it up!
             scheduler_.start();
         }

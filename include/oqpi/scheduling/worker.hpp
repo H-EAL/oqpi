@@ -6,7 +6,7 @@
 namespace oqpi {
 
     //----------------------------------------------------------------------------------------------
-    template<typename _Thread, typename _Notifier, typename _Scheduler, typename _WorkerContext>
+    template<typename _Thread, typename _Scheduler, typename _WorkerContext>
     class worker
         : public worker_base
         , public _WorkerContext
@@ -18,7 +18,6 @@ namespace oqpi {
             : worker_base(id, config)
             , _WorkerContext(this, std::forward<_Args>(args)...)
             , scheduler_(sc)
-            , notifier_()
             , running_(false)
         {}
 
@@ -72,24 +71,6 @@ namespace oqpi {
         }
 
         //------------------------------------------------------------------------------------------
-        virtual void wait() override final
-        {
-            notifier_.wait();
-        }
-
-        //------------------------------------------------------------------------------------------
-        virtual bool tryWait() override final
-        {
-            return notifier_.tryWait();
-        }
-
-        //------------------------------------------------------------------------------------------
-        virtual void notify() override final
-        {
-            notifier_.notifyOne();
-        }
-
-        //------------------------------------------------------------------------------------------
         virtual void run() override final
         {
             // Inform the context that we're starting the worker thread
@@ -101,7 +82,7 @@ namespace oqpi {
                 // Inform the context that we're potentially going idle while waiting for a task to work on
                 _WorkerContext::worker_onIdle();
                 // Signal to the scheduler that we want a task to work on
-                scheduler_.signalAvailableWorker(*this);
+                scheduler_.waitForNextTask(*this);
                 // At this point we either have a task to work on or we've been waken up to quit the thread
                 oqpi_check(!worker_base::isAvailable() || !isRunning());
                 // We consider ourselves active either way
@@ -137,8 +118,6 @@ namespace oqpi {
         _Scheduler         &scheduler_;
         // The underlying thread
         _Thread             thread_;
-        // Notifier used to signal/put to sleep the thread
-        _Notifier           notifier_;
         // Whether or not the worker is up and running
         std::atomic<bool>   running_;
     };

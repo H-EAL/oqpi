@@ -1,5 +1,6 @@
 #pragma once
 
+#include <span>
 #include <array>
 
 #include "oqpi/platform.hpp"
@@ -14,6 +15,12 @@ namespace oqpi {
     class win_sync
     {
     public:
+        //------------------------------------------------------------------------------------------
+        static auto wait_indefinitely_for_any(std::span<HANDLE> syncObjects)
+        {
+            return WaitForMultipleObjects(DWORD(syncObjects.size()), syncObjects.data(), FALSE, INFINITE);
+        }
+
         //------------------------------------------------------------------------------------------
         template<typename ..._SyncObjects>
         static auto wait_indefinitely_for_any(_SyncObjects &&...syncObjects)

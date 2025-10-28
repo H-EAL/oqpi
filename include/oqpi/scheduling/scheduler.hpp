@@ -3,6 +3,7 @@
 #include <vector>
 #include <atomic>
 
+#include "oqpi/synchronization/sync.hpp"
 #include "oqpi/scheduling/worker.hpp"
 #include "oqpi/scheduling/task_handle.hpp"
 #include "oqpi/scheduling/worker_context.hpp"
@@ -22,18 +23,22 @@ namespace oqpi {
     class scheduler
     {
     public:
+        //------------------------------------------------------------------------------------------
         static_assert(std::is_default_constructible<_TaskQueueType<task_handle>>::value, "_TaskQueueType must be default constructible.");
 
     public:
+        //------------------------------------------------------------------------------------------
         using self_type = scheduler<_TaskQueueType>;
 
     public:
+        //------------------------------------------------------------------------------------------
         scheduler()
             : running_(false)
         {
             std::memset(&workersPerPrio_[0], 0, sizeof(workersPerPrio_));
         }
 
+        //------------------------------------------------------------------------------------------
         ~scheduler()
         {
             if (running_.load())
@@ -42,13 +47,14 @@ namespace oqpi {
             }
         }
 
-        scheduler(const self_type &)               = delete;
+        //------------------------------------------------------------------------------------------
+        scheduler(const self_type &)                = delete;
         self_type& operator= (const self_type &)    = delete;
 
     public:
         //------------------------------------------------------------------------------------------
         // Creates the workers with a user defined context
-        template<typename _Thread, typename _Notifier, typename _WorkerContext, typename ..._Args>
+        template<typename _Thread, typename _WorkerContext, typename ..._Args>
         void registerWorker(const worker_config &config, _Args &&...args)
         {
             for (int prio = 0; prio < PRIO_COUNT; ++prio)
@@ -59,34 +65,34 @@ namespace oqpi {
                 }
             }
 
-            using worker_type = worker<_Thread, _Notifier, self_type, _WorkerContext>;
+            using worker_type = worker<_Thread, self_type, _WorkerContext>;
             for (int i = 0; i < config.count; ++i)
             {
                 workers_.emplace_back(std::make_unique<worker_type>(*this, i, config, std::forward<_Args>(args)...));
             }
         }
         //------------------------------------------------------------------------------------------
-        template<typename _Thread, typename _Notifier, typename _WorkerContext, int N>
+        template<typename _Thread, typename _WorkerContext, int N>
         void registerWorkers(const worker_config(&configs)[N])
         {
             for (const auto &config : configs)
             {
-                registerWorker<_Thread, _Notifier, _WorkerContext>(config);
+                registerWorker<_Thread, _WorkerContext>(config);
             }
         }
 
         //------------------------------------------------------------------------------------------
         // Creates the workers with a default empty context
-        template<typename _Thread, typename _Notifier>
+        template<typename _Thread>
         void registerWorker(const worker_config &config)
         {
-            registerWorker<_Thread, _Notifier, empty_worker_context>(config);
+            registerWorker<_Thread, empty_worker_context>(config);
         }
         //------------------------------------------------------------------------------------------
-        template<typename _Thread, typename _Notifier, int N>
+        template<typename _Thread, int N>
         void registerWorkers(const worker_config(&configs)[N])
         {
-            registerWorkers<_Thread, _Notifier, empty_worker_context>(configs);
+            registerWorkers<_Thread, empty_worker_context>(configs);
         }
 
         //------------------------------------------------------------------------------------------
@@ -198,6 +204,58 @@ namespace oqpi {
             return hTask;
         }
 
+        //------------------------------------------------------------------------------------------
+        // Called by worker threads when they are available, this function blocks on a semaphore.
+        // Once it receives a token it proceeds to getting a valid task from the queue.
+        task_handle waitForNextTask(worker_base &w)
+        {
+            auto semCount = 0;
+            auto sems   = std::array<semaphore::native_handle_type, PRIO_COUNT>{};
+            auto prios  = std::array<int32_t, PRIO_COUNT>{};
+            for (auto prio = 0; prio < PRIO_COUNT; ++prio)
+            {
+                if (w.canWorkOnPriority(task_priority(prio)))
+                {
+                    sems[semCount]  = wakeUpSemaphores_[prio].getNativeHandle();
+                    prios[semCount] = prio;
+                    ++semCount;
+                }
+            }
+
+            task_handle hTask;
+
+            while (true)
+            {
+                auto prioId = sync::wait_indefinitely_for_any(std::span(sems.data(), semCount));
+
+                if (!running_.load())
+                {
+                    break;
+                }
+
+                if (pendingTasks_[prios[prioId]].tryPop(hTask))
+                {
+                    // We got a task, try to grab it to ensure that we can work on it
+                    // Note that a task_group can be done without being grabbed when calling activeWait
+                    if (hTask.tryGrab() && !hTask.isDone())
+                    {
+                        // Assign it to the available worker
+                        w.assign(std::move(hTask));
+
+                        // We got a task! See ya!
+                        break;
+                    }
+                    else
+                    {
+                        // The task has already been grabbed by someone else
+                        hTask.reset();
+                    }
+                }
+            }
+
+            return hTask;
+        }
+
     private:
         //------------------------------------------------------------------------------------------
         // Get the actual priority of the task, task items can be set to inherit so they take the
@@ -227,109 +285,18 @@ namespace oqpi {
         }
 
         //------------------------------------------------------------------------------------------
-        // Retrieve a task to work on
-        task_handle waitForNextTask(worker_base &w)
-        {
-            const auto pumpTask = [this, &w](task_handle &hTask)
-            {
-                if (!running_.load())
-                {
-                    return true;
-                }
-
-                for (auto prio = 0; prio < PRIO_COUNT; ++prio)
-                {
-                    if (w.canWorkOnPriority(task_priority(prio)))
-                    {
-                        while (pendingTasks_[prio].tryPop(hTask))
-                        {
-                            // We got a task, try to grab it to ensure that we can work on it
-                            // Note that a task_group can be done without being grabbed when calling activeWait
-                            if (hTask.tryGrab() && !hTask.isDone())
-                            {
-                                // We got the go to start working on the current task
-                                return true;
-                            }
-                            else
-                            {
-                                // The task has already been grabbed by someone else
-                                hTask.reset();
-                            }
-                        }
-                    }
-                }
-
-                return false;
-            };
-
-            // Before checking if we have a task decrement the semaphore count until it reaches 0
-            while (w.tryWait());
-
-            task_handle hTask;
-            while (!pumpTask(hTask))
-            {
-                w.wait();
-                while (w.tryWait());
-            }
-
-            return hTask;
-        }
-
-    public:
-        //------------------------------------------------------------------------------------------
-        // Called by worker threads when they are available, this function blocks on a semaphore.
-        // Once it receives a token it proceeds to getting a valid task from the queue.
-        void signalAvailableWorker(worker_base &w)
-        {
-            // Loop until we find a task to work on
-            while (true)
-            {
-                // Grab the next task
-                task_handle hTask = waitForNextTask(w);
-
-                // We could have been waken up to stop
-                if (!running_.load())
-                {
-                    return;
-                }
-
-                // Make sure it's runnable
-                if (oqpi_ensure(hTask.isValid() && hTask.isGrabbed()))
-                {
-                    // Make sure it's not done (activeWait on groups can leave a task done without being grabbed)
-                    if (!hTask.isDone())
-                    {
-                        // Assign it to the available worker
-                        w.assign(std::move(hTask));
-
-                        // We got a task! See ya!
-                        break;
-                    }
-                }
-            }
-        }
-
-    private:
-        //------------------------------------------------------------------------------------------
         // Signal all workers
         void wakeUpAllWorkers()
         {
-            for (auto &upWorker : workers_)
+            for (auto &s : wakeUpSemaphores_)
             {
-                upWorker->notify();
+                s.notify(int32_t(workers_.size()));
             }
-
         }
         // Signal only the workers of the specified priority
         void wakeUpWorkersWithPriority(task_priority prio)
         {
-            for (auto &upWorker : workers_)
-            {
-                if (upWorker->canWorkOnPriority(prio))
-                {
-                    upWorker->notify();
-                }
-            }
+            wakeUpSemaphores_[size_t(prio)].notifyOne();
         }
 
     private:
@@ -337,6 +304,7 @@ namespace oqpi {
 
         std::vector<worker_uptr>    workers_;
         int32_t                     workersPerPrio_[PRIO_COUNT];
+        semaphore                   wakeUpSemaphores_[PRIO_COUNT];
         _TaskQueueType<task_handle> pendingTasks_[PRIO_COUNT];
         std::atomic<bool>           running_;
     };

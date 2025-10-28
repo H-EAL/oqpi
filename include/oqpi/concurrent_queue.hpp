@@ -3,8 +3,37 @@
 #include <mutex>
 #include <queue>
 
-template <typename T>
+#include "concurrentqueue.h"
+
+
+template<typename T>
 class concurrent_queue
+    : public moodycamel::ConcurrentQueue<T>
+{
+public:
+    void push(T &&t)
+    {
+        moodycamel::ConcurrentQueue<T>::enqueue(std::move(t));
+    }
+
+    void push(const T &t)
+    {
+        moodycamel::ConcurrentQueue<T>::enqueue(t);
+    }
+
+    bool tryPop(T &item)
+    {
+        return moodycamel::ConcurrentQueue<T>::try_dequeue(item);
+    }
+
+    bool empty() const
+    {
+        return moodycamel::ConcurrentQueue<T>::size_approx() == 0;
+    }
+};
+
+template <typename T>
+class concurrent_queue_
 {
     using lock_t = std::lock_guard<std::mutex>;
 

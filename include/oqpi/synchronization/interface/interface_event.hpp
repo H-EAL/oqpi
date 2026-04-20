@@ -34,18 +34,20 @@ namespace oqpi { namespace itfc {
 
     public:
         //------------------------------------------------------------------------------------------
-        event()
-            : base_type()
-        {}
+        explicit event(bool initialState = false)
+            : base_type(initialState)
+        {
+        }
 
         //------------------------------------------------------------------------------------------
-        explicit event(const std::string &name)
-            : base_type(name, sync_object_creation_options::open_or_create)
-        {}
+        explicit event(const std::string &name, bool initialState = false)
+            : base_type(name, sync_object_creation_options::open_or_create, initialState)
+        {
+        }
 
         //------------------------------------------------------------------------------------------
-        explicit event(const std::string &name, sync_object_creation_options creationOption)
-            : base_type(name, creationOption)
+        explicit event(const std::string &name, sync_object_creation_options creationOption, bool initialState = false)
+            : base_type(name, creationOption, initialState)
         {}
 
     public:

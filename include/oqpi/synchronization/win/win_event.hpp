@@ -29,11 +29,11 @@ namespace oqpi {
 
     protected:
         //------------------------------------------------------------------------------------------
-        win_event(const std::string &name, sync_object_creation_options creationOption)
+        win_event(const std::string &name, sync_object_creation_options creationOption, bool initialState)
             : handle_(nullptr)
         {
             const auto bManualReset  = BOOL{ _ResetPolicy::is_manual_reset_enabled() };
-            const auto bInitialState = BOOL{ FALSE };
+            const auto bInitialState = BOOL{ initialState };
 
             if (creationOption == sync_object_creation_options::open_existing)
             {

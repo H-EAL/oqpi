@@ -98,7 +98,7 @@ namespace oqpi {
             handle_ = CreateThread(lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, lpThreadId);
             if (handle_ == nullptr)
             {
-                oqpi_error("CreateThread failed with error code: %d", GetLastError());
+                oqpi_error("CreateThread failed with error code: %lu", GetLastError());
                 return false;
             }
 
@@ -146,7 +146,7 @@ namespace oqpi {
             }
             else
             {
-                oqpi_error("WaitForSingleObject failed with error code: %d", GetLastError());
+                oqpi_error("WaitForSingleObject failed with error code: %lu", GetLastError());
             }
         }
         //------------------------------------------------------------------------------------------
@@ -166,7 +166,7 @@ namespace oqpi {
             }
             else
             {
-                oqpi_error("CloseHandle failed with error code: %d", GetLastError());
+                oqpi_error("CloseHandle failed with error code: %lu", GetLastError());
             }
         }
         //------------------------------------------------------------------------------------------
@@ -187,7 +187,7 @@ namespace oqpi {
             }
             else
             {
-                oqpi_error("TerminateThread failed with error code: %d", GetLastError());
+                oqpi_error("TerminateThread failed with error code: %lu", GetLastError());
             }
         }
         //------------------------------------------------------------------------------------------
@@ -264,7 +264,7 @@ namespace oqpi {
 
                 if (GetLastError() != ERROR_INVALID_PARAMETER)
                 {
-                    oqpi_warning("Unable to retrieve core affinity mask for thread %d", GetCurrentThreadId());
+                    oqpi_warning("Unable to retrieve core affinity mask for thread %lu", GetCurrentThreadId());
                     break;
                 }
                 testMask <<= 1;
@@ -297,7 +297,7 @@ namespace oqpi {
             }
             else
             {
-                oqpi_warning("Unable to retrieve thread priority for thread %d", GetCurrentThreadId());
+                oqpi_warning("Unable to retrieve thread priority for thread %lu", GetCurrentThreadId());
             }
 
             return threadPriority;

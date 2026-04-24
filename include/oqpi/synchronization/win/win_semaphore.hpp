@@ -54,9 +54,9 @@ namespace oqpi {
 
         //------------------------------------------------------------------------------------------
         win_semaphore(win_semaphore &&other) noexcept
-            : handle_(other.handle_)
-            , initCount_(other.initCount_)
+            : initCount_(other.initCount_)
             , maxCount_(other.maxCount_)
+            , handle_(other.handle_)
         {
             other.handle_ = nullptr;
         }
@@ -128,7 +128,7 @@ namespace oqpi {
             const auto result = WaitForSingleObjectEx(handle_, dwMilliseconds, bAlertable);
             if (oqpi_failed(result == WAIT_OBJECT_0 || result == WAIT_TIMEOUT))
             {
-                oqpi_error("WaitForSingleObjectEx failed with error code 0x%x", GetLastError());
+                oqpi_error("WaitForSingleObjectEx failed with error code 0x%lx", GetLastError());
             }
             return (result == WAIT_OBJECT_0);
         }

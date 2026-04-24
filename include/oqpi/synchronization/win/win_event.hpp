@@ -46,7 +46,7 @@ namespace oqpi {
                 if (creationOption == sync_object_creation_options::create_if_nonexistent && GetLastError() == ERROR_ALREADY_EXISTS)
                 {
                     close();
-                    handle_ = nullptr; 
+                    handle_ = nullptr;
                 }
             }
         }
@@ -132,7 +132,7 @@ namespace oqpi {
             const auto result = WaitForSingleObjectEx(handle_, dwMilliseconds, bAlertable);
             if (oqpi_failed(result == WAIT_OBJECT_0 || result == WAIT_TIMEOUT))
             {
-                oqpi_error("WaitForSingleObjectEx failed with error code 0x%x", GetLastError());
+                oqpi_error("WaitForSingleObjectEx failed with error code 0x%lx", GetLastError());
             }
             return (result == WAIT_OBJECT_0);
         }

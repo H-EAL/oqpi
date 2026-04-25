@@ -30,8 +30,8 @@ namespace oqpi {
 
         //------------------------------------------------------------------------------------------
         posix_semaphore(posix_semaphore &&other)
-            : sem_(std::move(other.sem_))
-            , maxCount_(other.maxCount_)
+            : maxCount_(other.maxCount_)
+            , sem_(std::move(other.sem_))
         {
         }
 

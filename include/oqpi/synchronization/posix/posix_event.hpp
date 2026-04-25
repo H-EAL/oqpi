@@ -32,8 +32,8 @@ namespace oqpi {
 
     protected:
         //------------------------------------------------------------------------------------------
-        posix_event(const std::string &name, sync_object_creation_options creationOption)
-            : sem_(name, creationOption, 0u)
+        posix_event(const std::string &name, sync_object_creation_options creationOption, bool initialState)
+            : sem_(name, creationOption, initialState ? 1 : 0)
         {
         }
 

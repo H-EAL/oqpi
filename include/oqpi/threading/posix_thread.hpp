@@ -403,7 +403,9 @@ namespace oqpi {
         template<typename _Rep, typename _Period>
         inline void sleep_for(const std::chrono::duration<_Rep, _Period>& relTime)
         {
-            pthread_sleep(std::chrono::duration_cast<std::chrono::milliseconds>(relTime).count());
+            const auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(relTime).count();
+            const timespec ts{ ns / 1'000'000'000, ns % 1'000'000'000 };
+            nanosleep(&ts, nullptr);
         }
         //------------------------------------------------------------------------------------------
         inline uint32_t get_current_core()

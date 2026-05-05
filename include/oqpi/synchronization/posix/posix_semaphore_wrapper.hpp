@@ -113,7 +113,7 @@ namespace oqpi {
             }
             return error == 0;
         }
-        
+
         //------------------------------------------------------------------------------------------
         template<typename _Rep, typename _Period>
         bool waitFor(const std::chrono::duration<_Rep, _Period> &relTime)
@@ -131,10 +131,17 @@ namespace oqpi {
             t.tv_sec            += secs.count();
             t.tv_nsec           += nanoseconds.count();
 
-            const auto error    = sem_timedwait(handle_, &t);
-            if(error == -1 && errno != ETIMEDOUT)
+            if (t.tv_nsec >= 1'000'000'000)
             {
-                oqpi_error("sem_timedwait failed with error code %d", errno);
+                t.tv_sec    += 1;
+                t.tv_nsec   -= 1'000'000'000;
+            }
+
+            const auto error = sem_timedwait(handle_, &t);
+            if (error == -1 && errno != ETIMEDOUT)
+            {
+                oqpi_error("TV_SEC: %lld, TV_NSEC: %lld, handle: %p", static_cast<long long>(t.tv_sec), static_cast<long long>(t.tv_nsec), handle_);
+                oqpi_error("sem_timedwait failed with error code %d on %s", errno, name_.c_str());
             }
             return error == 0;
         }
@@ -153,7 +160,7 @@ namespace oqpi {
         {
             // Create an unnamed semaphore.
             handle_ = new sem_t;
-        
+
             // If pshared has the value 0, then the semaphore is shared between the threads of a process.
             constexpr auto pshared  = 0;
             const auto error        = sem_init(handle_, pshared, initCount);
@@ -197,7 +204,7 @@ namespace oqpi {
 
             if (handle_ == SEM_FAILED)
             {
-                oqpi_error("sem_open failed with error %d", errno);
+                oqpi_error("sem_open failed on global semaphore \"%s\" with error %d", name_.c_str(), errno);
                 return false;
             }
 

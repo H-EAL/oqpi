@@ -44,10 +44,33 @@ namespace oqpi {
         static constexpr auto default_priority = task_priority::normal;
 
 
+    private:
         //------------------------------------------------------------------------------------------
         // Static instance
-        static _Scheduler scheduler_;
-        static _Scheduler& scheduler() { return scheduler_; }
+        inline static _Scheduler *s_pScheduler_ = nullptr;
+    
+    public:
+        //------------------------------------------------------------------------------------------
+        static void create()
+        {
+            oqpi_checkf(s_pScheduler_ == nullptr, "Trying to create a new scheduler while another one already exists.");
+            s_pScheduler_ = new _Scheduler();
+        }
+        //------------------------------------------------------------------------------------------
+        static void set_scheduler(_Scheduler *pScheduler)
+        {
+            oqpi_checkf(s_pScheduler_ == nullptr, "Trying to set a new scheduler while another one already exists.");
+            s_pScheduler_ = pScheduler;
+        }
+        //------------------------------------------------------------------------------------------
+        static void destroy()
+        {
+            oqpi_checkf(s_pScheduler_ != nullptr, "Trying to destroy a non existing scheduler.");
+            delete s_pScheduler_;
+            s_pScheduler_ = nullptr;
+        }
+        //------------------------------------------------------------------------------------------
+        static auto scheduler() -> _Scheduler &{ return *s_pScheduler_; }
 
 
         //------------------------------------------------------------------------------------------
@@ -70,15 +93,22 @@ namespace oqpi {
             // Start as many workers as requested.
             config.count                                = workerCount;
 
-            scheduler_.template registerWorker<default_thread, default_semaphore, _WorkerContext>(config);
+            if (!s_pScheduler_)
+            {
+                create();
+            }
+
+            s_pScheduler_->template registerWorker<default_thread, default_semaphore, _WorkerContext>(config);
             // Fire it up!
-            scheduler_.start();
+            s_pScheduler_->start();
         }
 
         //------------------------------------------------------------------------------------------
         inline static void stop_scheduler()
         {
-            scheduler_.stop();
+            s_pScheduler_->stop();
+
+            destroy();
         }
 
 
@@ -86,12 +116,12 @@ namespace oqpi {
         // Add a task to the scheduler
         inline static task_handle schedule_task(const task_handle &hTask)
         {
-            return scheduler_.add(hTask);
+            return s_pScheduler_->add(hTask);
         }
         //------------------------------------------------------------------------------------------
         inline static task_handle schedule_task(task_handle &&hTask)
         {
-            return scheduler_.add(std::move(hTask));
+            return s_pScheduler_->add(std::move(hTask));
         }
         //------------------------------------------------------------------------------------------
 
@@ -327,7 +357,7 @@ namespace oqpi {
         template<task_type _TaskType, typename _GroupContext>
         inline static auto make_parallel_group(const std::string &name, task_priority prio = default_priority, int32_t taskCount = 0, int32_t maxSimultaneousTasks = 0)
         {
-            return oqpi::make_parallel_group<_TaskType, _GroupContext>(scheduler_, name, prio, taskCount, maxSimultaneousTasks);
+            return oqpi::make_parallel_group<_TaskType, _GroupContext>(*s_pScheduler_, name, prio, taskCount, maxSimultaneousTasks);
         }
         //------------------------------------------------------------------------------------------
         // Type     : user defined
@@ -348,7 +378,7 @@ namespace oqpi {
         template<task_type _TaskType, typename _GroupContext>
         inline static auto make_sequence_group(const std::string &name, task_priority prio = default_priority)
         {
-            return oqpi::make_sequence_group<_TaskType, _GroupContext>(scheduler_, name, prio);
+            return oqpi::make_sequence_group<_TaskType, _GroupContext>(*s_pScheduler_, name, prio);
         }
         //------------------------------------------------------------------------------------------
         // Type     : user defined
@@ -367,7 +397,7 @@ namespace oqpi {
         template<task_type _TaskType, typename _GroupContext, typename _TaskContext, typename _Func, typename _Partitioner>
         inline static auto make_parallel_for_task_group(const std::string &name, const _Partitioner &partitioner, task_priority prio, _Func &&func)
         {
-            return oqpi::make_parallel_for_task_group<_TaskType, _EventType, _GroupContext, _TaskContext>(scheduler_, name, partitioner, prio, std::forward<_Func>(func));
+            return oqpi::make_parallel_for_task_group<_TaskType, _EventType, _GroupContext, _TaskContext>(*s_pScheduler_, name, partitioner, prio, std::forward<_Func>(func));
         }
         //------------------------------------------------------------------------------------------
         // Group Context    : default
@@ -388,7 +418,7 @@ namespace oqpi {
         template<typename _GroupContext, typename _TaskContext, typename _Func, typename _Partitioner>
         inline static void parallel_for(const std::string &name, const _Partitioner &partitioner, task_priority prio, _Func &&func)
         {
-            oqpi::parallel_for<_EventType, _GroupContext, _TaskContext>(scheduler_, name, partitioner, prio, std::forward<_Func>(func));
+            oqpi::parallel_for<_EventType, _GroupContext, _TaskContext>(*s_pScheduler_, name, partitioner, prio, std::forward<_Func>(func));
         }
         //------------------------------------------------------------------------------------------
         // Group Context    : user defined
@@ -399,7 +429,7 @@ namespace oqpi {
         inline static void parallel_for(const std::string &name, int32_t firstIndex, int32_t lastIndex, _Func &&func)
         {
             const auto priority     = default_priority;
-            const auto partitioner  = oqpi::simple_partitioner(firstIndex, lastIndex, scheduler_.workersCount(priority));
+            const auto partitioner  = oqpi::simple_partitioner(firstIndex, lastIndex, s_pScheduler_->workersCount(priority));
             self_type::parallel_for<_GroupContext, _TaskContext>(name, partitioner, priority, std::forward<_Func>(func));
         }
         //------------------------------------------------------------------------------------------
@@ -572,11 +602,6 @@ namespace oqpi {
             spGroup->addTask(std::forward<task_handle>(taskHandle));
         }
     };
-
-    //----------------------------------------------------------------------------------------------
-    template<typename _Scheduler, typename _DefaultGroupContext, typename _DefaultTaskContext, typename _EventType>
-    _Scheduler helpers<_Scheduler, _DefaultGroupContext, _DefaultTaskContext, _EventType>::scheduler_;
-    //----------------------------------------------------------------------------------------------
 
 
     //----------------------------------------------------------------------------------------------

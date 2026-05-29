@@ -41,6 +41,9 @@ namespace oqpi {
         using default_thread = thread_interface<>;
 
         //------------------------------------------------------------------------------------------
+        using scheduler_type = _Scheduler;
+
+        //------------------------------------------------------------------------------------------
         static constexpr auto default_priority = task_priority::normal;
 
 
